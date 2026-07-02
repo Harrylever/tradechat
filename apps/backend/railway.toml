@@ -1,6 +1,6 @@
 [build]
 builder = "nixpacks"
-buildCommand = "pnpm install --no-frozen-lockfile && pnpm db:generate && pnpm build"
+buildCommand = "pnpm install --frozen-lockfile && cd apps/backend && pnpm db:generate && pnpm build"
 
 [deploy]
 preDeployCommand = "pnpm db:migrate:deploy"
