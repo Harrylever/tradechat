@@ -1,159 +1,200 @@
-# Turborepo starter
+# TradeChat
 
-This Turborepo starter is maintained by the Turborepo core team.
+> **WhatsApp-native sales tracking and checkout provisioning for Nigerian micro-businesses**
+>
+> DevCareer × Nomba Hackathon 2026
 
-## Using this example
+---
 
-Run the following command:
+## What is TradeChat?
 
-```sh
-npx create-turbo@latest
+TradeChat turns a merchant's existing WhatsApp number into a full point-of-sale system. Merchants log sales in plain language via WhatsApp, the bot parses and confirms the transaction, generates a Nomba payment link or virtual account for the customer, and reconciles payment status via Nomba webhooks. A companion web dashboard surfaces sales history, revenue, and outstanding orders — while a daily summary is also pushed back into WhatsApp so merchants never have to leave the channel they already live in.
+
+---
+
+## Architecture
+
+```
+Customer/Merchant (WhatsApp)
+        │
+        ▼
+Twilio WhatsApp Business API ──(webhook)──► NestJS Backend
+                                                   │
+                                    ┌──────────────┼───────────────┐
+                                    ▼              ▼               ▼
+                              Gemini (parsing)  PostgreSQL     Nomba API
+                                                (Prisma)     (Checkout / VA)
+                                                   │               │
+                                                   ▼               ▼
+                                          Next.js Dashboard   Nomba Webhooks
+                                             (Vercel)         (payment status)
+                                                                   │
+                                                                   ▼
+                                                        NestJS → Twilio → Merchant
 ```
 
-## What's inside?
+**Core loop:**
+1. Merchant sends a free-text sale message on WhatsApp
+2. Twilio forwards it to a NestJS webhook endpoint
+3. Gemini extracts structured data (item, qty, price, customer)
+4. Bot echoes parsed data back for merchant confirmation
+5. On confirmation, backend creates a Nomba checkout link / virtual account
+6. Link is sent to the customer via the merchant
+7. Nomba webhook fires on payment → backend updates transaction status
+8. Confirmation messages sent to both merchant and customer
+9. Dashboard and daily WhatsApp summary reflect the settled transaction
 
-This Turborepo includes the following packages/apps:
+---
 
-### Apps and Packages
+## Tech Stack
 
-- `docs`: a [Next.js](https://nextjs.org/) app
-- `web`: another [Next.js](https://nextjs.org/) app
-- `@repo/ui`: a stub React component library shared by both `web` and `docs` applications
-- `@repo/eslint-config`: `eslint` configurations (includes `eslint-config-next` and `eslint-config-prettier`)
-- `@repo/typescript-config`: `tsconfig.json`s used throughout the monorepo
+| Layer | Choice |
+|---|---|
+| Messaging | Twilio WhatsApp Business API |
+| AI parsing | Google Gemini 1.5 Flash |
+| Payments | Nomba Checkout API + Virtual Accounts + Webhooks |
+| Backend | NestJS (Node.js / TypeScript) |
+| ORM / DB | Prisma + PostgreSQL (Railway) |
+| Cache / Queue | Upstash Redis + BullMQ |
+| Dashboard | Next.js + Tailwind |
+| Auth | Clerk |
+| Hosting (backend) | Railway |
+| Hosting (dashboard) | Vercel |
 
-Each package/app is 100% [TypeScript](https://www.typescriptlang.org/).
+---
 
-### Utilities
+## Monorepo Structure
 
-This Turborepo has some additional tools already setup for you:
+This is a [Turborepo](https://turborepo.dev) monorepo managed with [pnpm](https://pnpm.io).
 
-- [TypeScript](https://www.typescriptlang.org/) for static type checking
-- [ESLint](https://eslint.org/) for code linting
-- [Prettier](https://prettier.io) for code formatting
-
-### Build
-
-To build all apps and packages, run the following command:
-
-With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed (recommended):
-
-```sh
-cd my-turborepo
-turbo build
+```
+tradechat/
+├── apps/
+│   ├── backend/     # NestJS API — webhook receiver, Nomba integration, BullMQ jobs
+│   └── web/         # Next.js merchant dashboard
+├── packages/
+│   ├── ui/                  # Shared React component library
+│   ├── eslint-config/       # Shared ESLint configuration
+│   └── typescript-config/   # Shared tsconfig.json bases
+├── turbo.json
+└── pnpm-workspace.yaml
 ```
 
-Without global `turbo`, use your package manager:
+---
+
+## Getting Started
+
+### Prerequisites
+
+- Node.js 20+
+- pnpm 9+
+- A PostgreSQL database (Railway recommended)
+- An Upstash Redis instance
+
+### Installation
 
 ```sh
-cd my-turborepo
-npx turbo build
-pnpm dlx turbo build
-pnpm exec turbo build
+git clone https://github.com/Harrylever/tradechat.git
+cd tradechat
+pnpm install
 ```
 
-You can build a specific package by using a [filter](https://turborepo.dev/docs/crafting-your-repository/running-tasks#using-filters):
+### Environment setup
 
-With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed:
+Copy the example env file in the backend and fill in your credentials:
 
 ```sh
-turbo build --filter=docs
+cp apps/backend/.env.example apps/backend/.env
 ```
 
-Without global `turbo`:
+| Variable | Description |
+|---|---|
+| `DATABASE_URL` | PostgreSQL connection string |
+| `TWILIO_ACCOUNT_SID` | Twilio account SID |
+| `TWILIO_AUTH_TOKEN` | Twilio auth token |
+| `TWILIO_WHATSAPP_FROM` | Sandbox number e.g. `whatsapp:+14155238886` |
+| `GEMINI_API_KEY` | Google AI Studio key |
+| `NOMBA_BASE_URL` | `https://sandbox.api.nomba.com/v1` (sandbox) |
+| `NOMBA_ACCOUNT_ID` | Nomba parent account UUID |
+| `NOMBA_CLIENT_ID` | Nomba OAuth client ID |
+| `NOMBA_CLIENT_SECRET` | Nomba OAuth client secret |
+| `NOMBA_WEBHOOK_SECRET` | Nomba webhook signature key |
+| `REDIS_URL` | Upstash Redis URL |
+| `API_SECRET` | Internal secret for dashboard ↔ backend calls |
+| `PORT` | Server port (default `3001`) |
+
+### Database
 
 ```sh
-npx turbo build --filter=docs
-pnpm exec turbo build --filter=docs
-pnpm exec turbo build --filter=docs
+# Run migrations
+cd apps/backend
+pnpm dlx prisma migrate deploy
+
+# Generate Prisma client
+pnpm dlx prisma generate
 ```
 
-### Develop
+---
 
-To develop all apps and packages, run the following command:
+## Development
 
-With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed (recommended):
+Run all apps in parallel from the monorepo root:
 
 ```sh
-cd my-turborepo
 turbo dev
 ```
 
-Without global `turbo`, use your package manager:
+Or target a specific app:
 
 ```sh
-cd my-turborepo
-npx turbo dev
-pnpm exec turbo dev
-pnpm exec turbo dev
-```
-
-You can develop a specific package by using a [filter](https://turborepo.dev/docs/crafting-your-repository/running-tasks#using-filters):
-
-With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed:
-
-```sh
+turbo dev --filter=backend
 turbo dev --filter=web
 ```
 
-Without global `turbo`:
+---
+
+## Building
 
 ```sh
-npx turbo dev --filter=web
-pnpm exec turbo dev --filter=web
-pnpm exec turbo dev --filter=web
+# Build everything
+turbo build
+
+# Build a specific app
+turbo build --filter=backend
 ```
 
-### Remote Caching
+---
 
-> [!TIP]
-> Vercel Remote Cache is free for all plans. Get started today at [vercel.com](https://vercel.com/signup?utm_source=remote-cache-sdk&utm_campaign=free_remote_cache).
+## API
 
-Turborepo can use a technique known as [Remote Caching](https://turborepo.dev/docs/core-concepts/remote-caching) to share cache artifacts across machines, enabling you to share build caches with your team and CI/CD pipelines.
+The backend exposes:
 
-By default, Turborepo will cache locally. To enable Remote Caching you will need an account with Vercel. If you don't have an account you can [create one](https://vercel.com/signup?utm_source=turborepo-examples), then enter the following commands:
+- `GET /health` — health check (no auth required)
+- `POST /webhook/twilio` — inbound WhatsApp messages from Twilio
+- `POST /webhook/nomba` — payment events from Nomba (HMAC verified)
+- `GET /api/v1/docs` — Swagger UI
+- `GET /api/v1/merchants/:id/transactions` — dashboard REST API
+- `GET /api/v1/merchants/:id/transactions/stats` — revenue stats
 
-With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed (recommended):
+---
 
-```sh
-cd my-turborepo
-turbo login
-```
+## Hackathon
 
-Without global `turbo`, use your package manager:
+**Build window:** July 1–7, 2026
+**Submission deadline:** July 18, 2026
+**Track:** Infrastructure
 
-```sh
-cd my-turborepo
-npx turbo login
-pnpm exec turbo login
-pnpm exec turbo login
-```
+### Success criteria
+- [ ] Merchant onboards entirely via WhatsApp in under 5 minutes
+- [ ] A sale message produces a live Nomba checkout link within 60 seconds
+- [ ] Nomba webhook triggers merchant confirmation within 10 seconds of payment
+- [ ] Dashboard reflects real-time transaction data
+- [ ] Daily WhatsApp summary sends on schedule
 
-This will authenticate the Turborepo CLI with your [Vercel account](https://vercel.com/docs/concepts/personal-accounts/overview).
+---
 
-Next, you can link your Turborepo to your Remote Cache by running the following command from the root of your Turborepo:
+## Author
 
-With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed:
-
-```sh
-turbo link
-```
-
-Without global `turbo`:
-
-```sh
-npx turbo link
-pnpm exec turbo link
-pnpm exec turbo link
-```
-
-## Useful Links
-
-Learn more about the power of Turborepo:
-
-- [Tasks](https://turborepo.dev/docs/crafting-your-repository/running-tasks)
-- [Caching](https://turborepo.dev/docs/crafting-your-repository/caching)
-- [Remote Caching](https://turborepo.dev/docs/core-concepts/remote-caching)
-- [Filtering](https://turborepo.dev/docs/crafting-your-repository/running-tasks#using-filters)
-- [Configuration Options](https://turborepo.dev/docs/reference/configuration)
-- [CLI Usage](https://turborepo.dev/docs/reference/command-line-reference)
+| Name | Role |
+|---|---|
+| Dean | Full-stack / AI integration |
