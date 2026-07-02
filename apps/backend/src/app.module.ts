@@ -8,6 +8,16 @@ import { BullModule } from '@nestjs/bullmq';
 import { ThrottlerModule } from '@nestjs/throttler';
 import { ThrottlerStorageRedisService } from '@nest-lab/throttler-storage-redis';
 import { QueueOptions } from 'bullmq';
+import { PrismaModule } from './prisma/prisma.module';
+import { HealthModule } from './api/health/health.module';
+import { NombaModule } from './api/nomba/nomba.module';
+import { TwilioModule } from './twilio/twilio.module';
+import { GeminiModule } from './gemini/gemini.module';
+import { WhatsAppModule } from './api/whatsapp/whatsapp.module';
+import { MerchantModule } from './api/merchant/merchant.module';
+import { TransactionModule } from './api/transaction/transaction.module';
+import { JobsModule } from './jobs/jobs.module';
+import { SentryModule } from '@sentry/nestjs/setup';
 
 type RedisConnectionParams = {
   url: string;
@@ -57,6 +67,7 @@ const getConnectionParams = (
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
     ScheduleModule.forRoot(),
+    SentryModule.forRoot(),
     BullModule.forRootAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
@@ -100,6 +111,15 @@ const getConnectionParams = (
         };
       },
     }),
+    PrismaModule,
+    HealthModule,
+    NombaModule,
+    TwilioModule,
+    GeminiModule,
+    WhatsAppModule,
+    MerchantModule,
+    TransactionModule,
+    JobsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

@@ -12,6 +12,25 @@ datasource db {
   provider = "postgresql"
 }
 
+enum TransactionStatus {
+  PENDING_CONFIRMATION
+  AWAITING_PAYMENT
+  PAID
+  FAILED
+  CANCELLED
+}
+
+enum Tier {
+  FREE
+  GROWTH
+  PRO
+}
+
+enum WebhookSource {
+  NOMBA
+  TWILIO
+}
+
 model Merchant {
   id                 String         @id @default(cuid())
   businessName       String
@@ -24,12 +43,6 @@ model Merchant {
   products           Product[]
   transactions       Transaction[]
   webhookEvents      WebhookEvent[]
-}
-
-enum Tier {
-  FREE
-  GROWTH
-  PRO
 }
 
 model Product {
@@ -61,14 +74,6 @@ model Transaction {
   webhookEvents        WebhookEvent[]
 }
 
-enum TransactionStatus {
-  PENDING_CONFIRMATION
-  AWAITING_PAYMENT
-  PAID
-  FAILED
-  CANCELLED
-}
-
 model WebhookEvent {
   id             String        @id @default(cuid())
   source         WebhookSource
@@ -79,9 +84,4 @@ model WebhookEvent {
   merchantId     String?
   transaction    Transaction?  @relation(fields: [transactionId], references: [id])
   merchant       Merchant?     @relation(fields: [merchantId], references: [id])
-}
-
-enum WebhookSource {
-  NOMBA
-  TWILIO
 }
