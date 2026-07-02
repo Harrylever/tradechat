@@ -1,0 +1,11 @@
+[phases.setup]
+nixPkgs = ["nodejs_24", "pnpm", "openssl"]
+
+[phases.install]
+cmds = ["npm install -g corepack@0.24.1 && corepack enable", "pnpm i --no-frozen-lockfile"]
+
+[phases.build]
+cmds = ["pnpm db:generate", "pnpm build"]
+
+[start]
+cmd = "node dist/src/main"
