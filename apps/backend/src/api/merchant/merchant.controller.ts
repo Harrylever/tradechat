@@ -1,4 +1,12 @@
-import { Controller, Get, Patch, Param, Body } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Patch,
+  Param,
+  Body,
+  Query,
+  NotFoundException,
+} from '@nestjs/common';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { MerchantService } from './merchant.service';
 
@@ -6,6 +14,15 @@ import { MerchantService } from './merchant.service';
 @Controller('merchants')
 export class MerchantController {
   constructor(private readonly merchantService: MerchantService) {}
+
+  @Get()
+  @ApiOperation({ summary: 'Find merchant by WhatsApp phone number' })
+  async findByPhone(@Query('phone') phone: string) {
+    if (!phone) throw new NotFoundException('phone query param is required');
+    const merchant = await this.merchantService.findByPhone(phone);
+    if (!merchant) throw new NotFoundException('Merchant not found');
+    return merchant;
+  }
 
   @Get(':id')
   @ApiOperation({ summary: 'Get merchant profile by ID' })

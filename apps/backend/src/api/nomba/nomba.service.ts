@@ -1,7 +1,14 @@
-import { Injectable, HttpException, HttpStatus, Logger } from '@nestjs/common';
+import {
+  Injectable,
+  HttpException,
+  HttpStatus,
+  Logger,
+  BadRequestException,
+} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import axios, { AxiosInstance } from 'axios';
 import { NOMBA_API_URL } from '../../common/constants';
+import { ENV } from 'src/config/env.config';
 
 export interface CheckoutOrderPayload {
   amountNaira: number;
@@ -44,7 +51,6 @@ export class NombaService {
         if (accountId) {
           config.headers['accountId'] = accountId;
         }
-        console.log(config.headers);
       }
       return config;
     });
@@ -154,20 +160,28 @@ export class NombaService {
     payload: CheckoutOrderPayload,
   ): Promise<{ checkoutLink: string; orderReference: string }> {
     const amountNaira = Number(payload.amountNaira.toFixed(2));
+    const subAccountId = ENV.NOMBA_SUBACCOUNT_ID;
+
+    if (!subAccountId) {
+      throw new BadRequestException('Missing Nomba subaccount id');
+    }
+
+    const defaultEmail = ENV.NOMBA_DEFAULT_EMAIL;
 
     const requestBody = {
       order: {
-        orderReference: payload.orderReference,
+        callbackUrl: payload.callbackUrl,
         amount: amountNaira,
         currency: 'NGN',
-        callbackUrl: payload.callbackUrl,
+        orderReference: payload.orderReference,
         customerId: payload.customerId,
-        ...(payload.customerEmail && { customerEmail: payload.customerEmail }),
+        customerEmail: payload.customerEmail || defaultEmail,
+        ...(subAccountId && { accountId: subAccountId }),
       },
     };
 
     this.logger.log(
-      `Creating Nomba checkout order ref:${payload.orderReference} amountNaira:${amountNaira}`,
+      `Creating Nomba checkout order ref:${payload.orderReference} amountNaira:${amountNaira} accountId:${subAccountId || 'default'}`,
       'NombaService',
     );
 
@@ -190,27 +204,64 @@ export class NombaService {
       currency: payload.currency || 'NGN',
     };
 
+    const subAccountId = ENV.NOMBA_SUBACCOUNT_ID;
+
+    if (!subAccountId) {
+      throw new BadRequestException('Missing Nomba subaccount id');
+    }
+
+    const endpoint = `/accounts/virtual/${subAccountId}`;
+
     this.logger.log(
-      `Creating Nomba virtual account ref:${payload.accountRef} name:${payload.accountName}`,
+      `Creating Nomba virtual account ref:${payload.accountRef} name:${payload.accountName} endpoint:${endpoint}`,
       'NombaService',
     );
 
-    const response = await this.axiosInstance.post(
-      '/accounts/virtual',
-      requestBody,
-    );
+    const response = await this.axiosInstance.post(endpoint, requestBody);
     return response.data?.data || response.data;
   }
 
-  async verifyTransaction(orderReference: string): Promise<any> {
+  async verifyTransaction(
+    orderReference: string,
+  ): Promise<{ isPaid: boolean; isFailed: boolean; raw: any }> {
     this.logger.log(
       `Verifying transaction status ref:${orderReference}`,
       'NombaService',
     );
-    const response = await this.axiosInstance.get(
-      `/checkout/order/${orderReference}`,
-    );
-    return response.data?.data || response.data;
+    try {
+      const response = await this.axiosInstance.post(
+        '/checkout/confirm-transaction-receipt',
+        { orderReference },
+      );
+
+      const data = response.data?.data || response.data;
+
+      this.logger.debug(
+        `Raw verifyTransaction response for ${orderReference}: ${JSON.stringify(data)}`,
+        'NombaService',
+      );
+
+      const statusVal = data?.status;
+      const isPaid = statusVal === true || statusVal === 'true';
+      const isFailed = statusVal === false || statusVal === 'false';
+
+      return {
+        isPaid,
+        isFailed,
+        raw: data,
+      };
+    } catch (error: any) {
+      this.logger.error(
+        `Error verifying transaction ${orderReference}: ${error?.message}`,
+        error?.stack,
+        'NombaService',
+      );
+      return {
+        isPaid: false,
+        isFailed: false,
+        raw: error?.response?.data || { error: error?.message },
+      };
+    }
   }
 
   async lookupBank(accountNumber: string, bankCode: string): Promise<any> {

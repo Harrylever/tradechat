@@ -25,7 +25,7 @@ export class TransactionService {
   async getTransaction(id: string) {
     const transaction = await this.prisma.transaction.findUnique({
       where: { id },
-      include: { webhookEvents: true },
+      include: { webhookEvents: true, merchant: true },
     });
     if (!transaction) {
       throw new NotFoundException('Transaction not found');

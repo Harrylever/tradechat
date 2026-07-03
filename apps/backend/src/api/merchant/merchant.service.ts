@@ -53,4 +53,11 @@ export class MerchantService {
       data,
     });
   }
+
+  async findByPhone(phone: string) {
+    const clean = phone.startsWith('+') ? phone : `+${phone}`;
+    return await this.prisma.merchant.findUnique({
+      where: { whatsappNumber: clean },
+    });
+  }
 }

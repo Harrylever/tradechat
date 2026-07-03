@@ -181,9 +181,10 @@ export class WhatsAppService {
           },
         });
 
-        const callbackUrl =
-          this.configService.get<string>('WEBHOOK_CALLBACK_URL') ||
-          'https://tradechat-staging.up.railway.app/api/v1/webhook/nomba';
+        const baseUrl =
+          this.configService.get<string>('PAYMENT_RETURN_URL') ||
+          'http://localhost:3000';
+        const callbackUrl = `${baseUrl}/payment/verify?trxref=${transaction.id}`;
 
         try {
           const checkout = await this.nomba.createCheckoutOrder({
@@ -198,10 +199,12 @@ export class WhatsAppService {
             data: {
               merchantTxRef: checkout.orderReference,
               checkoutLink: checkout.checkoutLink,
+              status: 'AWAITING_PAYMENT',
             },
           });
 
           const reply = `✅ Payment Link Ready!\n\nCustomer: ${order.customerName || 'Customer'}\nItem: ${order.quantity || 1}x ${order.itemDescription}\nAmount: ₦${(order.amountNaira || 0).toLocaleString()}\n\nSend this link to collect payment:\n👉 ${checkout.checkoutLink}`;
+
           await this.twilio.sendWhatsAppMessage(cleanPhone, reply);
         } catch (err: any) {
           this.logger.error(
