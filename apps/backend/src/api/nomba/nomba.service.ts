@@ -36,14 +36,15 @@ export class NombaService {
 
   private setupInterceptors() {
     this.axiosInstance.interceptors.request.use(async (config) => {
-      // Do not attach token for auth endpoint
       if (!config.url?.includes('/auth/token')) {
         const token = await this.getAccessToken();
         config.headers['Authorization'] = `Bearer ${token}`;
+        config.headers['Content-Type'] = 'application/json';
         const accountId = this.configService.get<string>('NOMBA_ACCOUNT_ID');
         if (accountId) {
           config.headers['accountId'] = accountId;
         }
+        console.log(config.headers);
       }
       return config;
     });
@@ -104,21 +105,21 @@ export class NombaService {
 
       if (!clientId || !clientSecret || !accountId) {
         this.logger.warn(
-          'Nomba credentials missing in config. Returning mock token for local dev/testing.',
+          'Nomba credentials missing in environment. Returning mock token for testing.',
           'NombaService',
         );
         return 'mock_nomba_access_token';
       }
 
       const response = await axios.post(
-        `${NOMBA_API_URL}/auth/token/2`,
+        `${NOMBA_API_URL}/auth/token/issue`,
         {
           grant_type: 'client_credentials',
           client_id: clientId,
           client_secret: clientSecret,
         },
         {
-          headers: { accountId },
+          headers: { 'Content-Type': 'application/json', accountId },
         },
       );
 
@@ -152,13 +153,12 @@ export class NombaService {
   async createCheckoutOrder(
     payload: CheckoutOrderPayload,
   ): Promise<{ checkoutLink: string; orderReference: string }> {
-    // IMPORTANT: Convert Naira amount to integer kobo per Nomba hackathon training spec
-    const amountKobo = Math.round(payload.amountNaira * 100);
+    const amountNaira = Number(payload.amountNaira.toFixed(2));
 
     const requestBody = {
       order: {
         orderReference: payload.orderReference,
-        amount: amountKobo, // integer kobo
+        amount: amountNaira,
         currency: 'NGN',
         callbackUrl: payload.callbackUrl,
         customerId: payload.customerId,
@@ -167,7 +167,7 @@ export class NombaService {
     };
 
     this.logger.log(
-      `Creating Nomba checkout order ref:${payload.orderReference} amountKobo:${amountKobo}`,
+      `Creating Nomba checkout order ref:${payload.orderReference} amountNaira:${amountNaira}`,
       'NombaService',
     );
 

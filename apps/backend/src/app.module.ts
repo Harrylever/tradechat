@@ -36,7 +36,7 @@ const getConnectionParams = (
     config ? config.get<string>(key) : process.env[key];
 
   const redisUrl = getEnv('REDIS_URL');
-  if (!redisUrl) return null; // ← early return instead of unassigned result
+  if (!redisUrl) return null;
 
   try {
     const parsed = new URL(redisUrl);
@@ -49,7 +49,7 @@ const getConnectionParams = (
 
     if (parsed.username) options.username = decodeURIComponent(parsed.username);
     if (parsed.password) options.password = decodeURIComponent(parsed.password);
-    if (parsed.protocol === 'rediss:') {
+    if (parsed.protocol === 'redis:') {
       options.tls = { rejectUnauthorized: false };
     }
 
@@ -72,7 +72,6 @@ const getConnectionParams = (
       imports: [ConfigModule],
       inject: [ConfigService],
       useFactory: (config: ConfigService): QueueOptions => {
-        // ← explicit return type
         const options = getConnectionParams(config);
         if (!options) {
           throw new Error('REDIS_URL is required for BullMQ');
