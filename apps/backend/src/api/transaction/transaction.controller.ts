@@ -1,6 +1,7 @@
-import { Controller, Get, Param, Query } from '@nestjs/common';
+import { Controller, Get, Param, Query, UseGuards } from '@nestjs/common';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { TransactionService } from './transaction.service';
+import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 
 @ApiTags('Transactions')
 @Controller('transactions')
@@ -8,6 +9,7 @@ export class TransactionController {
   constructor(private readonly transactionService: TransactionService) {}
 
   @Get()
+  @UseGuards(JwtAuthGuard)
   @ApiOperation({
     summary: 'List transactions filtered by merchantId or status',
   })

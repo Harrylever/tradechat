@@ -6,9 +6,11 @@ import {
   Body,
   Query,
   NotFoundException,
+  UseGuards,
 } from '@nestjs/common';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { MerchantService } from './merchant.service';
+import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 
 @ApiTags('Merchants')
 @Controller('merchants')
@@ -31,6 +33,7 @@ export class MerchantController {
   }
 
   @Get(':id/stats')
+  @UseGuards(JwtAuthGuard)
   @ApiOperation({
     summary: 'Get merchant sales statistics and transaction volume',
   })
@@ -39,6 +42,7 @@ export class MerchantController {
   }
 
   @Patch(':id')
+  @UseGuards(JwtAuthGuard)
   @ApiOperation({ summary: 'Update merchant profile details' })
   async updateProfile(
     @Param('id') id: string,

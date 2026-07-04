@@ -18,6 +18,9 @@ import { MerchantModule } from './api/merchant/merchant.module';
 import { TransactionModule } from './api/transaction/transaction.module';
 import { JobsModule } from './jobs/jobs.module';
 import { SentryModule } from '@sentry/nestjs/setup';
+import { AuthModule } from './api/auth/auth.module';
+import { WithdrawalModule } from './api/withdrawal/withdrawal.module';
+import { RedisModule } from './redis/redis.module';
 
 type RedisConnectionParams = {
   url: string;
@@ -118,6 +121,9 @@ const getConnectionParams = (
     WhatsAppModule,
     MerchantModule,
     TransactionModule,
+    AuthModule,
+    WithdrawalModule,
+    RedisModule,
     JobsModule,
   ],
   controllers: [AppController],

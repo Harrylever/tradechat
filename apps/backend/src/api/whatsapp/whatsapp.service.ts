@@ -1,11 +1,11 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import Redis from 'ioredis';
 import * as Sentry from '@sentry/nestjs';
 import { PrismaService } from '../../prisma/prisma.service';
 import { GeminiService, ExtractedOrder } from '../../gemini/gemini.service';
 import { NombaService } from '../nomba/nomba.service';
 import { TwilioService } from '../../twilio/twilio.service';
+import { RedisService } from '../../redis/redis.service';
 
 interface ConversationState {
   step: 'IDLE' | 'CONFIRMING_ORDER';
@@ -15,7 +15,6 @@ interface ConversationState {
 @Injectable()
 export class WhatsAppService {
   private readonly logger = new Logger(WhatsAppService.name);
-  private redis: Redis | null = null;
   private memoryCache = new Map<
     string,
     { state: ConversationState; expiresAt: number }
@@ -27,52 +26,14 @@ export class WhatsAppService {
     private readonly gemini: GeminiService,
     private readonly nomba: NombaService,
     private readonly twilio: TwilioService,
-  ) {
-    const redisUrl = this.configService.get<string>('REDIS_URL');
-    if (redisUrl) {
-      try {
-        this.redis = new Redis(redisUrl, {
-          maxRetriesPerRequest: 1,
-          lazyConnect: true,
-        });
-        this.redis.connect().catch((error) => {
-          this.logger.warn(
-            `Redis connection failed for WhatsApp state: ${error.message}. Using in-memory fallback.`,
-            'WhatsAppService',
-          );
-          Sentry.captureException(error, {
-            tags: { operation: 'redis_connect' },
-          });
-          this.redis = null;
-        });
-      } catch (error: any) {
-        Sentry.captureException(error, {
-          tags: { operation: 'redis_init' },
-        });
-        this.redis = null;
-      }
-    }
-  }
+    private readonly redisService: RedisService,
+  ) {}
 
   private async getState(phone: string): Promise<ConversationState> {
     const key = `wa:state:${phone}`;
-    if (this.redis) {
-      try {
-        const data = await this.redis.get(key);
-        if (data) return JSON.parse(data);
-      } catch (error: any) {
-        this.logger.error(
-          `Redis read error for key ${key}: ${error.message}`,
-          error.stack,
-          'WhatsAppService',
-        );
-        Sentry.captureException(error, {
-          tags: { operation: 'redis_read', key },
-          extra: { phone },
-        });
-        // fall through to memory cache
-      }
-    }
+    const data = await this.redisService.getJson<ConversationState>(key);
+    if (data) return data;
+
     const cached = this.memoryCache.get(key);
     if (cached && cached.expiresAt > Date.now()) {
       return cached.state;
@@ -86,23 +47,7 @@ export class WhatsAppService {
   ): Promise<void> {
     const key = `wa:state:${phone}`;
     const ttlSeconds = 1800; // 30 mins
-    if (this.redis) {
-      try {
-        await this.redis.set(key, JSON.stringify(state), 'EX', ttlSeconds);
-        return;
-      } catch (error: any) {
-        this.logger.error(
-          `Redis write error for key ${key}: ${error.message}`,
-          error.stack,
-          'WhatsAppService',
-        );
-        Sentry.captureException(error, {
-          tags: { operation: 'redis_write', key },
-          extra: { phone, state },
-        });
-        // fall through to memory cache
-      }
-    }
+    await this.redisService.setJson(key, state, ttlSeconds);
     this.memoryCache.set(key, {
       state,
       expiresAt: Date.now() + ttlSeconds * 1000,
@@ -111,21 +56,7 @@ export class WhatsAppService {
 
   private async clearState(phone: string): Promise<void> {
     const key = `wa:state:${phone}`;
-    if (this.redis) {
-      try {
-        await this.redis.del(key);
-      } catch (error: any) {
-        this.logger.error(
-          `Redis delete error for key ${key}: ${error.message}`,
-          error.stack,
-          'WhatsAppService',
-        );
-        Sentry.captureException(error, {
-          tags: { operation: 'redis_delete', key },
-          extra: { phone },
-        });
-      }
-    }
+    await this.redisService.del(key);
     this.memoryCache.delete(key);
   }
 
