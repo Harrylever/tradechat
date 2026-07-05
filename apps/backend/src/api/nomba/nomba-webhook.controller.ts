@@ -10,7 +10,7 @@ import {
 } from '@nestjs/common';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { PrismaService } from '../../prisma/prisma.service';
-import { TwilioService } from '../../twilio/twilio.service';
+import { NotificationService } from '../../twilio/notification.service';
 import { NombaSignatureGuard } from './nomba-signature.guard';
 
 @ApiTags('Webhooks - Nomba')
@@ -20,7 +20,7 @@ export class NombaWebhookController {
 
   constructor(
     private readonly prisma: PrismaService,
-    private readonly twilio: TwilioService,
+    private readonly notificationService: NotificationService,
   ) {}
 
   @Post()
@@ -116,7 +116,7 @@ export class NombaWebhookController {
       // Notify merchant via WhatsApp
       if (transaction.merchant) {
         try {
-          await this.twilio.sendWhatsAppMessage(
+          await this.notificationService.sendWhatsApp(
             transaction.merchant.whatsappNumber,
             `🎉 Payment Confirmed!\n\n📦 Item: ${transaction.quantity}x ${transaction.itemDescription}\n💰 Amount: ₦${Number(transaction.totalAmount).toLocaleString()}\nRef: ${transaction.merchantTxRef || ref}`,
           );
@@ -141,7 +141,7 @@ export class NombaWebhookController {
 
         if (transaction.merchant) {
           try {
-            await this.twilio.sendWhatsAppMessage(
+            await this.notificationService.sendWhatsApp(
               transaction.merchant.whatsappNumber,
               `❌ Payment Failed/Refunded\n\n📦 Item: ${transaction.quantity}x ${transaction.itemDescription}\n💰 Amount: ₦${Number(transaction.totalAmount).toLocaleString()}\nRef: ${transaction.merchantTxRef || ref}`,
             );

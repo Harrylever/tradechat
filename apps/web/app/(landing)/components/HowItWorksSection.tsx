@@ -4,18 +4,23 @@ import { HugeiconsIcon } from '@hugeicons/react'
 const STEPS = [
   {
     badge: <span className="text-sm font-bold">1</span>,
-    title: 'Customer messages you',
-    desc: 'They send a message on WhatsApp — e.g. "I want 5 bags of rice"',
+    title: 'A customer wants to buy',
+    desc: 'They message you on WhatsApp like they always have — "I want 5 bags of rice, how much?"',
   },
   {
     badge: <span className="text-sm font-bold">2</span>,
+    title: 'You tell TradeChat',
+    desc: 'Just type the sale like you\'d tell a friend — "Sold 5 bags rice to Ade, 87500". No forms, no app to open.',
+  },
+  {
+    badge: <span className="text-sm font-bold">3</span>,
     title: 'AI creates a payment link',
-    desc: 'Tradechat understands the order and generates a Nomba checkout link instantly',
+    desc: 'TradeChat confirms the order with you, then generates a secure Nomba checkout link instantly',
   },
   {
     badge: <HugeiconsIcon icon={Tick01Icon} size={20} />,
-    title: 'Payment confirmed',
-    desc: 'Customer pays, you get notified, and funds hit your balance in real-time',
+    title: 'Get paid, automatically tracked',
+    desc: "Your customer pays, you're notified immediately, and it's already logged in your dashboard",
   },
 ]
 

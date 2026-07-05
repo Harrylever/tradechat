@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useTransition } from 'react'
+import { useState } from 'react'
 
 import { useRouter } from 'next/navigation'
 
@@ -48,13 +48,12 @@ export function LoginCard() {
   const [error, setError] = useState('')
   const [hint, setHint] = useState('')
 
-  const isPending = isRequestingOtp || isVerifyingOtp
-
   async function handleRequestOtp(e?: React.FormEvent) {
     if (e?.preventDefault) {
       e.preventDefault()
     }
     setError('')
+    setOtp('')
 
     const { isValid, formatted } = formatNigerianPhone(phone)
     if (!isValid) {
@@ -99,14 +98,14 @@ export function LoginCard() {
   }
 
   return (
-    <Card className="rounded-2xl border border-white/10 bg-white/4 p-8 shadow-2xl backdrop-blur-sm">
+    <Card className="border border-white/10 bg-white/4 p-8 shadow-2xl backdrop-blur-sm">
       {step === 'phone' ? (
         <PhoneStep
           phone={phone}
           onPhoneChange={setPhone}
           onSubmit={handleRequestOtp}
           error={error}
-          isPending={isPending}
+          isPending={isRequestingOtp}
         />
       ) : (
         <OtpStep
@@ -121,7 +120,8 @@ export function LoginCard() {
           onResend={handleRequestOtp}
           hint={hint}
           error={error}
-          isPending={isPending}
+          isPending={isVerifyingOtp}
+          isResendingCode={isRequestingOtp}
         />
       )}
     </Card>

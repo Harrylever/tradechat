@@ -1,25 +1,12 @@
-import {
-  Body,
-  Controller,
-  Get,
-  Post,
-  Put,
-  Req,
-  UseGuards,
-} from '@nestjs/common';
+import { Body, Controller, Get, Post, Put, UseGuards } from '@nestjs/common';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { WithdrawalService } from './withdrawal.service';
-
-class RequestWithdrawalDto {
-  amountNaira: number;
-}
-
-class SaveBankAccountDto {
-  bankCode: string;
-  accountNumber: string;
-  accountName: string;
-}
+import {
+  CurrentUser,
+  JwtUser,
+} from 'src/common/decorators/current-user.decorator';
+import { RequestWithdrawalDto, SaveBankAccountDto } from './dto/withdrawal.dto';
 
 @ApiTags('Withdrawals')
 @Controller('withdrawals')
@@ -27,36 +14,39 @@ class SaveBankAccountDto {
 export class WithdrawalController {
   constructor(private readonly withdrawalService: WithdrawalService) {}
 
-  @Get('balance')
+  @Get('me/balance')
   @ApiOperation({ summary: 'Get available withdrawal balance' })
-  getBalance(@Req() req: any) {
-    return this.withdrawalService.getBalance(req.user.merchantId);
+  getBalance(@CurrentUser() user: JwtUser) {
+    return this.withdrawalService.getBalance(user.sub);
   }
 
   @Post()
   @ApiOperation({ summary: 'Submit a withdrawal request' })
-  requestWithdrawal(@Req() req: any, @Body() body: RequestWithdrawalDto) {
-    return this.withdrawalService.requestWithdrawal(
-      req.user.merchantId,
-      body.amountNaira,
-    );
+  requestWithdrawal(
+    @CurrentUser() user: JwtUser,
+    @Body() body: RequestWithdrawalDto,
+  ) {
+    return this.withdrawalService.requestWithdrawal(user.sub, body.amountNaira);
   }
 
-  @Get()
+  @Get('me')
   @ApiOperation({ summary: 'List withdrawal history' })
-  listWithdrawals(@Req() req: any) {
-    return this.withdrawalService.listWithdrawals(req.user.merchantId);
+  listWithdrawals(@CurrentUser() user: JwtUser) {
+    return this.withdrawalService.listWithdrawals(user.sub);
   }
 
-  @Get('bank-account')
+  @Get('me/bank-account')
   @ApiOperation({ summary: 'Get saved bank account' })
-  getBankAccount(@Req() req: any) {
-    return this.withdrawalService.getBankAccount(req.user.merchantId);
+  getBankAccount(@CurrentUser() user: JwtUser) {
+    return this.withdrawalService.getBankAccount(user.sub);
   }
 
-  @Put('bank-account')
+  @Put('me/bank-account')
   @ApiOperation({ summary: 'Save or update bank account details' })
-  saveBankAccount(@Req() req: any, @Body() body: SaveBankAccountDto) {
-    return this.withdrawalService.saveBankAccount(req.user.merchantId, body);
+  saveBankAccount(
+    @CurrentUser() user: JwtUser,
+    @Body() body: SaveBankAccountDto,
+  ) {
+    return this.withdrawalService.saveBankAccount(user.sub, body);
   }
 }

@@ -105,6 +105,7 @@ export default function RootLayout({
           geistMono.variable,
           'antialiased',
         )}
+        data-scroll-behavior="smooth"
       >
         <body>
           <TooltipProvider>{children}</TooltipProvider>

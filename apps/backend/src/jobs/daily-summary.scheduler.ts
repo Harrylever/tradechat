@@ -1,7 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { Cron } from '@nestjs/schedule';
 import { PrismaService } from '../prisma/prisma.service';
-import { TwilioService } from '../twilio/twilio.service';
+import { NotificationService } from '../twilio/notification.service';
 
 @Injectable()
 export class DailySummaryScheduler {
@@ -9,7 +9,7 @@ export class DailySummaryScheduler {
 
   constructor(
     private readonly prisma: PrismaService,
-    private readonly twilio: TwilioService,
+    private readonly notificationService: NotificationService,
   ) {}
 
   @Cron('0 8 * * *', {
@@ -49,7 +49,10 @@ export class DailySummaryScheduler {
         if (count > 0) {
           const totalNaira = Number(stats._sum.totalAmount || 0);
           const msg = `Good morning ${merchant.businessName}! 🌞\n\nHere is your sales summary for yesterday:\n✅ Total Paid Orders: ${count}\n💰 Total Revenue: ₦${totalNaira.toLocaleString()}\n\nHave a blessed trading day ahead!`;
-          await this.twilio.sendWhatsAppMessage(merchant.whatsappNumber, msg);
+          await this.notificationService.sendWhatsApp(
+            merchant.whatsappNumber,
+            msg,
+          );
         }
       }
     } catch (err: any) {

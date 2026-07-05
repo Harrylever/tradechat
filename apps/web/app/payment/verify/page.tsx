@@ -128,7 +128,7 @@ export default function PaymentVerifyPage() {
         {/* Card */}
         <div className="relative z-20 w-full max-w-sm">
           {status === 'loading' || status === 'AWAITING' ? (
-            <div className="rounded-3xl border border-white/[0.08] bg-white/[0.04] p-10 text-center shadow-2xl backdrop-blur-sm">
+            <div className="border border-white/[0.08] bg-white/[0.04] p-10 text-center shadow-2xl backdrop-blur-sm">
               {/* Spinner */}
               <div className="relative mb-8 flex items-center justify-center">
                 <div className="animate-pulse-ring absolute h-20 w-20 rounded-full border-2 border-emerald-500/20" />
@@ -156,7 +156,7 @@ export default function PaymentVerifyPage() {
               </p>
             </div>
           ) : status === 'PAID' ? (
-            <div className="animate-scale-in rounded-3xl border border-emerald-500/20 bg-white/[0.04] p-10 text-center shadow-2xl shadow-emerald-500/10 backdrop-blur-sm">
+            <div className="animate-scale-in border border-emerald-500/20 bg-white/[0.04] p-10 text-center shadow-2xl shadow-emerald-500/10 backdrop-blur-sm">
               {/* Success icon */}
               <div className="relative mb-8 flex items-center justify-center">
                 <div className="animate-pulse-ring absolute h-24 w-24 rounded-full bg-emerald-500/10" />
@@ -185,7 +185,7 @@ export default function PaymentVerifyPage() {
               </p>
 
               {tx && (
-                <div className="mb-8 space-y-3 rounded-2xl border border-white/[0.07] bg-white/[0.04] p-5 text-left">
+                <div className="mb-8 space-y-3 border border-white/[0.07] bg-white/[0.04] p-5 text-left">
                   <Row label="Merchant" value={tx.merchant.businessName} />
                   <Row label="Item" value={tx.itemDescription} />
                   <Row
@@ -207,7 +207,7 @@ export default function PaymentVerifyPage() {
               </p>
             </div>
           ) : (
-            <div className="animate-scale-in rounded-3xl border border-red-500/20 bg-white/[0.04] p-10 text-center shadow-2xl backdrop-blur-sm">
+            <div className="animate-scale-in border border-red-500/20 bg-white/[0.04] p-10 text-center shadow-2xl backdrop-blur-sm">
               {/* Error icon */}
               <div className="mx-auto mb-8 flex h-20 w-20 items-center justify-center rounded-full border border-red-500/20 bg-red-500/10">
                 <svg
@@ -229,7 +229,7 @@ export default function PaymentVerifyPage() {
 
               <a
                 href="/"
-                className="inline-block rounded-xl bg-white/[0.07] px-6 py-2.5 text-sm font-medium text-white transition-all hover:bg-white/[0.12]"
+                className="inline-block bg-white/[0.07] px-6 py-2.5 text-sm font-medium text-white transition-all hover:bg-white/[0.12]"
               >
                 Return to homepage
               </a>

@@ -94,7 +94,7 @@ export function Navbar() {
               </Link>
               <Link
                 href="/#"
-                className="border-primary/20 bg-primary text-foreground hover:bg-primary/90 flex items-center justify-center gap-2 rounded-xl border px-4 py-2 text-sm font-semibold transition-all"
+                className="border-primary/20 bg-primary text-foreground hover:bg-primary/90 flex items-center justify-center gap-2 border px-4 py-2 text-sm font-semibold transition-all"
               >
                 Get Started
                 <HugeiconsIcon icon={ChevronRightIcon} size={20} />

@@ -9,14 +9,11 @@ import {
 } from '@/services/transaction.service'
 
 export function useTransactions(
-  merchantId: string,
-  token?: string,
   params: { status?: string; limit?: number } = {},
 ) {
   return useQuery({
-    queryKey: queryKeys.listTransactions(merchantId, params),
-    queryFn: () => listTransactions(merchantId, token, params),
-    enabled: Boolean(merchantId),
+    queryKey: queryKeys.listTransactions(params),
+    queryFn: () => listTransactions(params),
   })
 }
 

@@ -2,20 +2,13 @@ import { Body, Controller, Injectable, Post, UseGuards } from '@nestjs/common';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { AuthService } from './auth.service';
 import { Throttle, ThrottlerGuard } from '@nestjs/throttler';
-
-class RequestOtpDto {
-  whatsappNumber: string;
-}
-
-class VerifyOtpDto {
-  whatsappNumber: string;
-  otp: string;
-}
+import { RequestOtpDto, VerifyOtpDto } from './dto/auth.dto';
 
 @Injectable()
 class PhoneAwareThrottlerGuard extends ThrottlerGuard {
   protected async getTracker(req: Record<string, any>): Promise<string> {
     const phone = req.body?.whatsappNumber ?? 'unknown';
+    console.log(`${req.ip}:${phone}`);
     return `${req.ip}:${phone}`;
   }
 }

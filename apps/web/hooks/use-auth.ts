@@ -6,18 +6,18 @@ import { requestOtp, verifyOtp } from '@/services/auth.service'
 
 export function useRequestOtp() {
   return useMutation({
-    mutationFn: (whatsappNumber: string) => requestOtp(whatsappNumber),
+    mutationFn: (whatsappNumber: string) => requestOtp({ whatsappNumber }),
   })
 }
 
 export function useVerifyOtp() {
   return useMutation({
     mutationFn: ({
-      whatsappNumber,
       otp,
+      whatsappNumber,
     }: {
-      whatsappNumber: string
       otp: string
-    }) => verifyOtp(whatsappNumber, otp),
+      whatsappNumber: string
+    }) => verifyOtp({ whatsappNumber, otp }),
   })
 }

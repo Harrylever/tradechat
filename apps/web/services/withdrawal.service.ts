@@ -19,7 +19,7 @@ export type Withdrawal = {
 }
 
 export async function getWithdrawalBalance() {
-  return api.get<{ availableNaira: number }>('/withdrawals/balance')
+  return api.get<{ availableNaira: number }>('/withdrawals/me/balance')
 }
 
 export async function requestWithdrawal(amountNaira: number) {
@@ -29,7 +29,7 @@ export async function requestWithdrawal(amountNaira: number) {
 }
 
 export async function listWithdrawals() {
-  return api.get<Withdrawal[]>('/withdrawals')
+  return api.get<Withdrawal[]>('/withdrawals/me')
 }
 
 export async function getBankAccount() {

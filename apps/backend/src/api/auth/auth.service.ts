@@ -33,6 +33,10 @@ export class AuthService {
     return trimmed.startsWith('+') ? trimmed : `+${trimmed}`;
   }
 
+  private keyGenerator = (whatsappNumber: string) => {
+    return `auth:otp:${whatsappNumber}`;
+  };
+
   async requestOtp(rawNumber: string): Promise<{ message: string }> {
     const whatsappNumber = this.normalizeNumber(rawNumber);
 
@@ -48,9 +52,9 @@ export class AuthService {
 
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
     const expiresAt = Date.now() + 5 * 60 * 1000; // 5 minutes
-    const ttlSeconds = 300;
+    const ttlSeconds = 300; // 5 minutes
 
-    const key = `auth:otp:${whatsappNumber}`;
+    const key = this.keyGenerator(whatsappNumber);
     await this.redisService.setJson(key, { otp, expiresAt }, ttlSeconds);
     this.otpStore.set(whatsappNumber, { otp, expiresAt });
 
@@ -67,7 +71,7 @@ export class AuthService {
     otp: string,
   ): Promise<{ accessToken: string; merchant: any }> {
     const whatsappNumber = this.normalizeNumber(rawNumber);
-    const key = `auth:otp:${whatsappNumber}`;
+    const key = this.keyGenerator(whatsappNumber);
 
     const storedRedis = await this.redisService.getJson<{
       otp: string;

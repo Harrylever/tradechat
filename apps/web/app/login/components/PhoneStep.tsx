@@ -76,7 +76,7 @@ export function PhoneStep({
             id="send-otp-btn"
             type="submit"
             disabled={isPending || !phone}
-            className="h-12 w-full rounded-xl bg-linear-to-r from-emerald-500 to-emerald-600 font-semibold text-white shadow-lg shadow-emerald-500/25 transition-all duration-200 hover:from-emerald-400 hover:to-emerald-500"
+            className="h-12 w-full bg-linear-to-r from-emerald-500 to-emerald-600 font-semibold text-white shadow-lg shadow-emerald-500/25 transition-all duration-200 hover:from-emerald-400 hover:to-emerald-500"
           >
             {isPending ? (
               <>

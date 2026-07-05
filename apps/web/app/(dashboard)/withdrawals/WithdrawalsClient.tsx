@@ -4,7 +4,7 @@ import { useState } from 'react'
 
 import { format } from 'date-fns'
 
-import { WithdrawPanel } from '@/app/(dashboard)/dashboard/components/WithdrawPanel'
+import { WithdrawPanel } from '@/components/dashboard/WithdrawPanel'
 import { BankAccount, Withdrawal } from '@/services/withdrawal.service'
 
 const STATUS_STYLES: Record<string, string> = {
@@ -57,7 +57,7 @@ export function WithdrawalsClient({
         />
 
         {/* Withdrawal History */}
-        <div className="overflow-hidden rounded-2xl border border-white/[0.07] bg-white/[0.04]">
+        <div className="overflow-hidden border border-white/[0.07] bg-white/[0.04]">
           <div className="border-b border-white/[0.06] px-6 py-4">
             <h2 className="font-semibold text-white">Withdrawal History</h2>
           </div>

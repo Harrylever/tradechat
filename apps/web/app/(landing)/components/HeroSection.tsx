@@ -4,12 +4,13 @@ import Link from 'next/link'
 
 import { ChatMockup } from './ChatMockup'
 
+import { DefaultWidth } from '@/components/molecules/DefaultWidth'
 import { Badge } from '@/components/ui/badge'
 
 export function HeroSection() {
   return (
-    <section className="relative min-h-screen px-6 pt-12 pb-20 md:pt-20 md:pb-28 xl:pt-28">
-      <div className="mx-auto grid w-full max-w-7xl grid-cols-1 items-center gap-12 lg:grid-cols-2 lg:gap-8">
+    <section className="relative min-h-screen pt-12 pb-20 md:pt-20 md:pb-28 xl:pt-16">
+      <DefaultWidth className="mx-auto grid w-full grid-cols-1 items-center gap-12 lg:grid-cols-2 lg:gap-8">
         <div className="z-10 flex flex-col items-start gap-3 text-left">
           <Badge
             variant="secondary"
@@ -35,14 +36,14 @@ export function HeroSection() {
           <div className="flex w-full flex-col gap-4 sm:w-auto sm:flex-row">
             <Link
               href="/login"
-              className="flex items-center justify-center gap-2 rounded-xl bg-[#00BD85] px-8 py-4 text-center text-base font-medium text-[#0a0f1e] shadow-lg shadow-emerald-500/25 transition-all duration-200 hover:scale-105 hover:bg-[#4EDEA3]"
+              className="flex items-center justify-center gap-2 bg-[#00BD85] px-8 py-4 text-center text-base font-medium text-[#0a0f1e] shadow-lg shadow-emerald-500/25 transition-all duration-200 hover:scale-105 hover:bg-[#4EDEA3]"
             >
               Open Dashboard
               <HugeiconsIcon icon={ChevronRightIcon} size={20} />
             </Link>
             <a
               href="#how-it-works"
-              className="flex items-center justify-center rounded-xl border border-white/10 bg-white/5 px-8 py-4 text-center text-base font-medium text-white transition-all hover:bg-white/10"
+              className="flex items-center justify-center border border-white/10 bg-white/5 px-8 py-4 text-center text-base font-medium text-white transition-all hover:bg-white/10"
             >
               See how it works
             </a>
@@ -52,7 +53,7 @@ export function HeroSection() {
         <div className="z-10 flex w-full items-center justify-center lg:justify-end">
           <ChatMockup />
         </div>
-      </div>
+      </DefaultWidth>
 
       {/* Ambient Glow */}
       <div className="blur-circle pointer-events-none absolute top-[0%] left-[50%] z-0 h-[400px] w-[500px] -translate-x-1/2 rounded-full bg-[#4EDEA3]/20" />

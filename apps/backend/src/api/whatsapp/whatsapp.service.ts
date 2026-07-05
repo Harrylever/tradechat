@@ -5,6 +5,7 @@ import { PrismaService } from '../../prisma/prisma.service';
 import { GeminiService, ExtractedOrder } from '../../gemini/gemini.service';
 import { NombaService } from '../nomba/nomba.service';
 import { TwilioService } from '../../twilio/twilio.service';
+import { NotificationService } from '../../twilio/notification.service';
 import { RedisService } from '../../redis/redis.service';
 
 interface ConversationState {
@@ -26,6 +27,7 @@ export class WhatsAppService {
     private readonly gemini: GeminiService,
     private readonly nomba: NombaService,
     private readonly twilio: TwilioService,
+    private readonly notificationService: NotificationService,
     private readonly redisService: RedisService,
   ) {}
 
@@ -136,7 +138,7 @@ export class WhatsAppService {
 
           const reply = `✅ Payment Link Ready!\n\nCustomer: ${order.customerName || 'Customer'}\nItem: ${order.quantity || 1}x ${order.itemDescription}\nAmount: ₦${(order.amountNaira || 0).toLocaleString()}\n\nSend this link to collect payment:\n👉 ${checkout.checkoutLink}`;
 
-          await this.twilio.sendWhatsAppMessage(cleanPhone, reply);
+          await this.notificationService.sendWhatsApp(cleanPhone, reply);
         } catch (err: any) {
           this.logger.error(
             `Failed to generate Nomba link: ${err.message}`,
@@ -147,7 +149,7 @@ export class WhatsAppService {
             where: { id: transaction.id },
             data: { status: 'FAILED' },
           });
-          await this.twilio.sendWhatsAppMessage(
+          await this.notificationService.sendWhatsApp(
             cleanPhone,
             '❌ Ah, small network issue creating the payment link right now. Abeg try send the order again in a minute.',
           );
@@ -160,7 +162,7 @@ export class WhatsAppService {
         lower === 'cancel'
       ) {
         await this.clearState(cleanPhone);
-        await this.twilio.sendWhatsAppMessage(
+        await this.notificationService.sendWhatsApp(
           cleanPhone,
           'No wahala! Order cancelled. Whenever you ready for another order, just type am.',
         );
@@ -174,7 +176,7 @@ export class WhatsAppService {
       const question =
         extracted.clarifyingQuestion ||
         'Abeg how much be the total amount for the order?';
-      await this.twilio.sendWhatsAppMessage(cleanPhone, question);
+      await this.notificationService.sendWhatsApp(cleanPhone, question);
       return;
     }
 
@@ -185,6 +187,6 @@ export class WhatsAppService {
     });
 
     const confirmMsg = `Confirm payment link details:\n\n👤 Customer: ${extracted.customerName || 'Customer'}\n📦 Item: ${extracted.quantity || 1}x ${extracted.itemDescription}\n💰 Total Amount: ₦${(extracted.amountNaira || 0).toLocaleString()}\n\nReply:\n1️⃣ for YES (Create Link)\n2️⃣ for NO (Cancel)`;
-    await this.twilio.sendWhatsAppMessage(cleanPhone, confirmMsg);
+    await this.notificationService.sendWhatsApp(cleanPhone, confirmMsg);
   }
 }

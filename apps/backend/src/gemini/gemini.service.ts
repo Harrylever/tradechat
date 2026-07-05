@@ -20,6 +20,7 @@ export interface ExtractedOrder {
 const MIN_AMOUNT_NAIRA = 50;
 const MAX_AMOUNT_NAIRA = 1_000_000;
 
+const GEMINI_MODEL = 'gemini-2.5-flash';
 const GEMINI_TIMEOUT_MS = 8_000; // 8 seconds
 
 const DEFAULT_CLARIFYING_QUESTION =
@@ -84,7 +85,7 @@ Only ever set confidence to "HIGH" if you are also returning a non-empty itemDes
     try {
       const response = await this.withTimeout(
         this.ai.models.generateContent({
-          model: 'gemini-2.5-flash',
+          model: GEMINI_MODEL,
           contents: `${systemPrompt}\n\nUser Message: "${messageText}"`,
           config: {
             responseMimeType: 'application/json',

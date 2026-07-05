@@ -93,7 +93,7 @@ export function WithdrawPanel({ balance, existingAccount, onSuccess }: Props) {
   }
 
   return (
-    <div className="overflow-hidden rounded-2xl border border-white/7 bg-white/4">
+    <div className="overflow-hidden border border-white/7 bg-white/4">
       {/* Tabs */}
       <div className="flex border-b border-white/[0.07]">
         {(['withdraw', 'bank'] as const).map((t) => (
@@ -117,19 +117,19 @@ export function WithdrawPanel({ balance, existingAccount, onSuccess }: Props) {
 
       <div className="p-6">
         {success && (
-          <div className="mb-5 rounded-xl border border-emerald-500/20 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-400">
+          <div className="mb-5 border border-emerald-500/20 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-400">
             {success}
           </div>
         )}
         {error && (
-          <div className="mb-5 rounded-xl border border-red-500/20 bg-red-500/10 px-4 py-3 text-sm text-red-400">
+          <div className="mb-5 border border-red-500/20 bg-red-500/10 px-4 py-3 text-sm text-red-400">
             {error}
           </div>
         )}
 
         {tab === 'withdraw' ? (
           <form onSubmit={handleWithdraw} className="space-y-5">
-            <div className="flex items-center justify-between rounded-xl border border-white/7 bg-white/4 p-4">
+            <div className="flex items-center justify-between border border-white/7 bg-white/4 p-4">
               <span className="text-sm text-slate-400">Available Balance</span>
               <span className="text-xl font-bold text-white">
                 ₦{balance.toLocaleString()}
@@ -137,7 +137,7 @@ export function WithdrawPanel({ balance, existingAccount, onSuccess }: Props) {
             </div>
 
             {existingAccount && (
-              <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/6 p-4">
+              <div className="border border-emerald-500/20 bg-emerald-500/6 p-4">
                 <p className="mb-0.5 text-xs text-slate-400">Payout to</p>
                 <p className="text-sm font-medium text-white">
                   {existingAccount.accountName}
@@ -163,7 +163,7 @@ export function WithdrawPanel({ balance, existingAccount, onSuccess }: Props) {
                 value={amount}
                 onChange={(e) => setAmount(e.target.value)}
                 required
-                className="w-full rounded-xl border border-white/10 bg-white/6 px-4 py-3 text-sm text-white placeholder-slate-500 transition-all focus:ring-2 focus:ring-emerald-500/50 focus:outline-none"
+                className="w-full border border-white/10 bg-white/6 px-4 py-3 text-sm text-white placeholder-slate-500 transition-all focus:ring-2 focus:ring-emerald-500/50 focus:outline-none"
               />
             </div>
 
@@ -171,7 +171,7 @@ export function WithdrawPanel({ balance, existingAccount, onSuccess }: Props) {
               id="request-withdrawal-btn"
               type="submit"
               disabled={loading || !amount || Number(amount) > balance}
-              className="flex w-full items-center justify-center gap-2 rounded-xl bg-linear-to-r from-emerald-500 to-emerald-600 py-3 font-semibold text-white shadow-lg shadow-emerald-500/20 transition-all duration-200 hover:from-emerald-400 hover:to-emerald-500 disabled:cursor-not-allowed disabled:opacity-40"
+              className="flex w-full items-center justify-center gap-2 bg-linear-to-r from-emerald-500 to-emerald-600 py-3 font-semibold text-white shadow-lg shadow-emerald-500/20 transition-all duration-200 hover:from-emerald-400 hover:to-emerald-500 disabled:cursor-not-allowed disabled:opacity-40"
             >
               {loading ? (
                 <>
@@ -197,7 +197,7 @@ export function WithdrawPanel({ balance, existingAccount, onSuccess }: Props) {
                 value={bankCode}
                 onChange={(e) => setBankCode(e.target.value)}
                 required
-                className="w-full rounded-xl border border-white/10 bg-white/6 px-4 py-3 text-sm text-white transition-all focus:ring-2 focus:ring-emerald-500/50 focus:outline-none"
+                className="w-full border border-white/10 bg-white/6 px-4 py-3 text-sm text-white transition-all focus:ring-2 focus:ring-emerald-500/50 focus:outline-none"
               >
                 <option value="">Select bank…</option>
                 {NIGERIAN_BANKS.map((b) => (
@@ -222,7 +222,7 @@ export function WithdrawPanel({ balance, existingAccount, onSuccess }: Props) {
                   setAccountNumber(e.target.value.replace(/\D/g, ''))
                 }
                 required
-                className="w-full rounded-xl border border-white/10 bg-white/6 px-4 py-3 font-mono text-sm text-white placeholder-slate-500 transition-all focus:ring-2 focus:ring-emerald-500/50 focus:outline-none"
+                className="w-full border border-white/10 bg-white/6 px-4 py-3 font-mono text-sm text-white placeholder-slate-500 transition-all focus:ring-2 focus:ring-emerald-500/50 focus:outline-none"
               />
             </div>
 
@@ -236,7 +236,7 @@ export function WithdrawPanel({ balance, existingAccount, onSuccess }: Props) {
                 value={accountName}
                 onChange={(e) => setAccountName(e.target.value)}
                 required
-                className="w-full rounded-xl border border-white/10 bg-white/6 px-4 py-3 text-sm text-white placeholder-slate-500 transition-all focus:ring-2 focus:ring-emerald-500/50 focus:outline-none"
+                className="w-full border border-white/10 bg-white/6 px-4 py-3 text-sm text-white placeholder-slate-500 transition-all focus:ring-2 focus:ring-emerald-500/50 focus:outline-none"
               />
             </div>
 
@@ -244,7 +244,7 @@ export function WithdrawPanel({ balance, existingAccount, onSuccess }: Props) {
               id="save-bank-account-btn"
               type="submit"
               disabled={loading}
-              className="flex w-full items-center justify-center gap-2 rounded-xl bg-linear-to-r from-emerald-500 to-emerald-600 py-3 font-semibold text-white shadow-lg shadow-emerald-500/20 transition-all duration-200 hover:from-emerald-400 hover:to-emerald-500 disabled:opacity-40"
+              className="flex w-full items-center justify-center gap-2 bg-linear-to-r from-emerald-500 to-emerald-600 py-3 font-semibold text-white shadow-lg shadow-emerald-500/20 transition-all duration-200 hover:from-emerald-400 hover:to-emerald-500 disabled:opacity-40"
             >
               {loading ? (
                 <>

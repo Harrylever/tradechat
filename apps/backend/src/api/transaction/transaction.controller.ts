@@ -2,26 +2,29 @@ import { Controller, Get, Param, Query, UseGuards } from '@nestjs/common';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { TransactionService } from './transaction.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { ListTransactionsDto } from './dto/transaction.dto';
+import {
+  CurrentUser,
+  JwtUser,
+} from 'src/common/decorators/current-user.decorator';
 
 @ApiTags('Transactions')
 @Controller('transactions')
 export class TransactionController {
   constructor(private readonly transactionService: TransactionService) {}
 
-  @Get()
+  @Get('me')
   @UseGuards(JwtAuthGuard)
   @ApiOperation({
     summary: 'List transactions filtered by merchantId or status',
   })
   async list(
-    @Query('merchantId') merchantId?: string,
-    @Query('status') status?: string,
-    @Query('limit') limit?: number,
+    @CurrentUser() user: JwtUser,
+    @Query() query: ListTransactionsDto,
   ) {
-    return this.transactionService.listTransactions({
-      merchantId,
-      status,
-      limit,
+    return this.transactionService.listTransactions(user.sub, {
+      status: query.status,
+      limit: query.limit,
     });
   }
 
@@ -30,7 +33,7 @@ export class TransactionController {
     summary:
       'Get single transaction details along with associated webhook events',
   })
-  async getDetails(@Param('id') id: string) {
-    return this.transactionService.getTransaction(id);
+  async getDetails(@CurrentUser() user: JwtUser, @Param('id') id: string) {
+    return this.transactionService.getTransaction(id, user.sub);
   }
 }

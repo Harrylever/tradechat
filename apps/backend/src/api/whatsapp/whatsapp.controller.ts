@@ -8,6 +8,8 @@ import {
   HttpStatus,
 } from '@nestjs/common';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
+import { InjectQueue } from '@nestjs/bullmq';
+import { Queue } from 'bullmq';
 import { WhatsAppService } from './whatsapp.service';
 import { TwilioWebhookGuard } from '../../twilio/twilio-webhook.guard';
 
@@ -16,7 +18,10 @@ import { TwilioWebhookGuard } from '../../twilio/twilio-webhook.guard';
 export class WhatsAppController {
   private readonly logger = new Logger(WhatsAppController.name);
 
-  constructor(private readonly whatsappService: WhatsAppService) {}
+  constructor(
+    private readonly whatsappService: WhatsAppService,
+    @InjectQueue('whatsapp-messages') private readonly whatsappQueue: Queue,
+  ) {}
 
   @Post()
   @HttpCode(HttpStatus.OK)
@@ -35,8 +40,17 @@ export class WhatsAppController {
 
     if (from && text) {
       // Process asynchronously without blocking Twilio's HTTP response
-      await this.whatsappService
-        .handleIncomingMessage(from, text)
+      await this.whatsappQueue
+        .add(
+          'process-message',
+          { from, text },
+          {
+            attempts: 3,
+            backoff: { type: 'exponential', delay: 2000 },
+            removeOnComplete: true,
+            removeOnFail: 100,
+          },
+        )
         .catch((err) => {
           this.logger.error(
             `Error processing WhatsApp message: ${err.message}`,

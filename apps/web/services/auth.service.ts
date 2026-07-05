@@ -5,16 +5,28 @@ import { cookies } from 'next/headers'
 import { api } from '@/lib/api'
 import { ACCESS_TOKEN_COOKIE_NAME } from '@/lib/auth'
 
-export async function requestOtp(whatsappNumber: string) {
+export async function requestOtp({
+  whatsappNumber,
+}: {
+  whatsappNumber: string
+}) {
+  console.log(whatsappNumber)
   return api.post<{ message: string }>('/auth/otp/request', {
     whatsappNumber,
+    hello: 'hello',
   })
 }
 
-export async function verifyOtp(whatsappNumber: string, otp: string) {
+export async function verifyOtp({
+  whatsappNumber,
+  otp,
+}: {
+  whatsappNumber: string
+  otp: string
+}) {
   const res = await api.post<{ accessToken: string }>('/auth/otp/verify', {
-    whatsappNumber,
     otp,
+    whatsappNumber,
   })
 
   const store = await cookies()

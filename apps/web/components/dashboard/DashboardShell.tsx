@@ -72,10 +72,10 @@ export function DashboardShell({ children }: Props) {
   }
 
   const Sidebar = (
-    <aside className="flex min-h-screen w-60 flex-col border-r border-white/[0.06] bg-[#0d1117] p-5">
+    <aside className="flex min-h-screen w-60 flex-col border-r border-white/6 bg-[#0d1117] p-5">
       {/* Logo */}
       <div className="mb-10 flex items-center gap-2.5">
-        <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-emerald-400 to-emerald-600 shadow-md shadow-emerald-500/30">
+        <div className="flex h-8 w-8 shrink-0 items-center justify-center bg-linear-to-br from-emerald-400 to-emerald-600 shadow-md shadow-emerald-500/30">
           <span className="text-sm font-bold text-white">T</span>
         </div>
         <span className="text-lg font-bold tracking-tight text-white">
@@ -92,7 +92,7 @@ export function DashboardShell({ children }: Props) {
             <Link
               key={item.href}
               href={item.href}
-              className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-150 ${
+              className={`flex items-center gap-3 px-3 py-2.5 text-sm font-medium transition-all duration-150 ${
                 active
                   ? 'border border-emerald-500/20 bg-emerald-500/15 text-emerald-400'
                   : 'text-slate-400 hover:bg-white/5 hover:text-white'
@@ -108,7 +108,7 @@ export function DashboardShell({ children }: Props) {
       {/* Logout */}
       <button
         onClick={handleLogout}
-        className="mt-4 flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-slate-500 transition-all duration-150 hover:bg-red-500/8 hover:text-red-400"
+        className="mt-4 flex items-center gap-3 px-3 py-2.5 text-sm font-medium text-slate-500 transition-all duration-150 hover:bg-red-500/8 hover:text-red-400"
       >
         <svg
           viewBox="0 0 24 24"

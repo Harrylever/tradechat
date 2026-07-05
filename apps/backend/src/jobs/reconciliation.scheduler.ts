@@ -1,8 +1,8 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { Cron } from '@nestjs/schedule';
+import { InjectQueue } from '@nestjs/bullmq';
+import { Queue } from 'bullmq';
 import { PrismaService } from '../prisma/prisma.service';
-import { NombaService } from '../api/nomba/nomba.service';
-import { TwilioService } from '../twilio/twilio.service';
 
 @Injectable()
 export class ReconciliationScheduler {
@@ -10,8 +10,7 @@ export class ReconciliationScheduler {
 
   constructor(
     private readonly prisma: PrismaService,
-    private readonly nombaService: NombaService,
-    private readonly twilio: TwilioService,
+    @InjectQueue('reconciliation') private readonly reconciliationQueue: Queue,
   ) {}
 
   // Force FAILED on any AWAITING_PAYMENT transaction older than 48 hours
@@ -59,7 +58,6 @@ export class ReconciliationScheduler {
           merchantTxRef: { not: null },
           createdAt: { lte: oneHourAgo },
         },
-        include: { merchant: true },
         take: 50,
       });
 
@@ -72,95 +70,23 @@ export class ReconciliationScheduler {
       }
 
       this.logger.log(
-        `Found ${pendingTx.length} AWAITING_PAYMENT transaction(s) to verify against Nomba API`,
+        `Found ${pendingTx.length} AWAITING_PAYMENT transaction(s) to dispatch to reconciliation queue`,
         'ReconciliationScheduler',
       );
 
       for (const tx of pendingTx) {
         if (!tx.merchantTxRef) continue;
 
-        try {
-          const result = await this.nombaService.verifyTransaction(
-            tx.merchantTxRef,
-          );
-
-          if (result.isPaid) {
-            const { count } = await this.prisma.transaction.updateMany({
-              where: { id: tx.id, status: 'AWAITING_PAYMENT' },
-              data: { status: 'PAID', paidAt: new Date() },
-            });
-
-            if (count === 0) {
-              // Webhook won the race — skip notification, already handled
-              this.logger.log(
-                `Reconciler skipped tx ${tx.id} — already updated by webhook`,
-                'ReconciliationScheduler',
-              );
-              continue;
-            }
-
-            this.logger.log(
-              `Reconciled missed webhook for tx ${tx.id} (${tx.merchantTxRef}) → PAID`,
-              'ReconciliationScheduler',
-            );
-
-            // Write WebhookEvent audit record
-            await this.prisma.webhookEvent.create({
-              data: {
-                source: 'NOMBA',
-                payload: result.raw ?? {},
-                idempotencyKey: `reconcile-paid-${tx.id}`,
-                transactionId: tx.id,
-                merchantId: tx.merchantId,
-              },
-            });
-
-            // Notify merchant via WhatsApp
-            if (tx.merchant) {
-              const merchantWhatsappNumber = tx.merchant.whatsappNumber;
-
-              try {
-                await this.twilio.sendWhatsAppMessage(
-                  merchantWhatsappNumber,
-                  `🎉 Payment Confirmed!\n\n📦 Item: ${tx.quantity}x ${tx.itemDescription}\n💰 Amount: ₦${Number(tx.totalAmount).toLocaleString()}\nRef: ${tx.merchantTxRef}`,
-                );
-              } catch (notifyErr: any) {
-                this.logger.error(
-                  `Failed to notify merchant ${tx.merchantId} for tx ${tx.id}: ${notifyErr.message}`,
-                  notifyErr.stack,
-                  'ReconciliationScheduler',
-                );
-              }
-            }
-          } else if (result.isFailed) {
-            await this.prisma.transaction.updateMany({
-              where: { id: tx.id, status: 'AWAITING_PAYMENT' },
-              data: { status: 'FAILED' },
-            });
-
-            // Audit record
-            await this.prisma.webhookEvent.create({
-              data: {
-                source: 'NOMBA',
-                payload: result.raw ?? {},
-                idempotencyKey: `reconcile-failed-${tx.id}`,
-                transactionId: tx.id,
-                merchantId: tx.merchantId,
-              },
-            });
-
-            this.logger.log(
-              `Reconciled expired/failed tx ${tx.id} (${tx.merchantTxRef}) → FAILED`,
-              'ReconciliationScheduler',
-            );
-          }
-        } catch (err: any) {
-          this.logger.error(
-            `Error verifying tx ${tx.id}: ${err.message}`,
-            err.stack,
-            'ReconciliationScheduler',
-          );
-        }
+        await this.reconciliationQueue.add(
+          'verify-tx',
+          { txId: tx.id, ref: tx.merchantTxRef },
+          {
+            attempts: 3,
+            backoff: { type: 'exponential', delay: 2000 },
+            removeOnComplete: true,
+            removeOnFail: 100,
+          },
+        );
       }
     } catch (err: any) {
       this.logger.error(

@@ -3,13 +3,13 @@ import type { NextRequest } from 'next/server'
 
 import { ACCESS_TOKEN_COOKIE_NAME } from '@/lib/auth'
 
-const publicPaths = ['/', '/login(.*)']
+const publicPaths = ['/', '/login']
 
 export function proxy(request: NextRequest) {
   const token = request.cookies.get(ACCESS_TOKEN_COOKIE_NAME)?.value
   const pathname = request.nextUrl.pathname
 
-  const isPublicPath = publicPaths.includes(pathname)
+  const isPublicPath = publicPaths.some((path) => pathname === path)
 
   if (!token && !isPublicPath) {
     const loginUrl = new URL('/login', request.url)

@@ -1,6 +1,13 @@
-import { KPICard } from '@/app/(dashboard)/dashboard/components/KPICard'
-import { RevenueChart } from '@/app/(dashboard)/dashboard/components/RevenueChart'
-import { TransactionTable } from '@/app/(dashboard)/dashboard/components/TransactionTable'
+import {
+  CheckmarkCircle01Icon,
+  Clock01Icon,
+  Exchange01Icon,
+  MoneyBag01Icon,
+} from '@hugeicons/core-free-icons'
+
+import { KPICard } from '@/components/dashboard/KPICard'
+import { RevenueChart } from '@/components/dashboard/RevenueChart'
+import { TransactionTable } from '@/components/dashboard/TransactionTable'
 import { getMerchantStats } from '@/services/merchant.service'
 import { listTransactions } from '@/services/transaction.service'
 
@@ -36,69 +43,28 @@ export default async function DashboardPage() {
           value={`₦${Number(stats.totalVolumeNaira).toLocaleString()}`}
           subtitle="From paid transactions"
           accent="emerald"
-          icon={
-            <svg
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth={2}
-              className="h-4 w-4"
-            >
-              <path d="M12 2v20M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6" />
-            </svg>
-          }
+          icon={MoneyBag01Icon}
         />
         <KPICard
           title="Total Transactions"
           value={stats.totalTransactions.toLocaleString()}
           subtitle="All time"
           accent="blue"
-          icon={
-            <svg
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth={2}
-              className="h-4 w-4"
-            >
-              <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-            </svg>
-          }
+          icon={Exchange01Icon}
         />
         <KPICard
           title="Success Rate"
           value={stats.successRate}
           subtitle={`${stats.paidTransactions} paid`}
           accent="violet"
-          icon={
-            <svg
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth={2}
-              className="h-4 w-4"
-            >
-              <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-          }
+          icon={CheckmarkCircle01Icon}
         />
         <KPICard
           title="Pending"
           value={pendingCount.toLocaleString()}
           subtitle="Awaiting payment"
           accent="amber"
-          icon={
-            <svg
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth={2}
-              className="h-4 w-4"
-            >
-              <circle cx="12" cy="12" r="10" />
-              <path d="M12 6v6l4 2" />
-            </svg>
-          }
+          icon={Clock01Icon}
         />
       </div>
 
@@ -107,7 +73,7 @@ export default async function DashboardPage() {
 
       {/* Transactions Table */}
       <div>
-        <h2 className="mb-4 text-lg font-semibold text-white">
+        <h2 className="font-heading mb-4 text-lg font-semibold text-white">
           Recent Transactions
         </h2>
         <TransactionTable transactions={transactions} />

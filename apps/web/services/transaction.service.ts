@@ -26,7 +26,7 @@ export async function listTransactions(
   params: { status?: string; limit?: number } = {},
 ) {
   const qs = buildQueryString({ ...params })
-  return api.get<Transaction[]>(`/transactions${qs}`)
+  return api.get<Transaction[]>(`/transactions/me${qs}`)
 }
 
 export async function getTransaction(id: string) {

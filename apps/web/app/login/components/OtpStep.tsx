@@ -25,6 +25,7 @@ interface OtpStepProps {
   hint: string
   error: string
   isPending: boolean
+  isResendingCode: boolean
 }
 
 export function OtpStep({
@@ -36,6 +37,7 @@ export function OtpStep({
   hint,
   error,
   isPending,
+  isResendingCode,
 }: OtpStepProps) {
   return (
     <>
@@ -69,7 +71,7 @@ export function OtpStep({
               maxLength={6}
               value={otp}
               onChange={onOtpChange}
-              disabled={isPending}
+              disabled={isPending || isResendingCode}
               containerClassName="w-full justify-between"
             >
               <InputOTPGroup className="w-full justify-between gap-1 sm:gap-2">
@@ -77,7 +79,7 @@ export function OtpStep({
                   <InputOTPSlot
                     key={index}
                     index={index}
-                    className="size-11 rounded-xl! border! border-white/10 bg-white/6 font-mono text-xl text-white data-[active=true]:border-emerald-500 data-[active=true]:ring-emerald-500/30 sm:size-13 sm:text-2xl"
+                    className="font-geist-mono size-11 border border-white/10 bg-white/6 text-xl text-white data-[active=true]:border-emerald-500 data-[active=true]:ring-emerald-500/30 sm:size-13 sm:text-2xl"
                   />
                 ))}
               </InputOTPGroup>
@@ -99,7 +101,12 @@ export function OtpStep({
             disabled={isPending || otp.length < 6}
             className="flex h-12 w-full items-center bg-linear-to-r from-emerald-500 to-emerald-600 font-semibold text-white shadow-lg shadow-emerald-500/25 transition-all duration-200 hover:from-emerald-400 hover:to-emerald-500"
           >
-            {isPending ? (
+            {isResendingCode ? (
+              <>
+                <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
+                Please wait...
+              </>
+            ) : isPending ? (
               <>
                 <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
                 Verifying…
@@ -116,10 +123,10 @@ export function OtpStep({
             type="button"
             variant="ghost"
             onClick={onResend}
-            disabled={isPending}
+            disabled={isPending || isResendingCode}
             className="w-full text-slate-400 hover:bg-white/5 hover:text-white"
           >
-            Resend code
+            {isResendingCode ? `Sending code` : `Resend code`}
           </Button>
         </form>
       </CardContent>

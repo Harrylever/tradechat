@@ -26,6 +26,6 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     if (!payload.sub) {
       throw new UnauthorizedException();
     }
-    return { merchantId: payload.sub, whatsappNumber: payload.whatsappNumber };
+    return { sub: payload.sub, whatsappNumber: payload.whatsappNumber };
   }
 }
