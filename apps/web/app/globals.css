@@ -1,42 +1,8 @@
-@import "tailwindcss";
-@import "tw-animate-css";
-@import "shadcn/tailwind.css";
+@import 'tailwindcss';
+@import 'tw-animate-css';
+@import 'shadcn/tailwind.css';
 
 @custom-variant dark (&:is(.dark *));
-
-html,
-body {
-  max-width: 100vw;
-  overflow-x: hidden;
-}
-
-* {
-  box-sizing: border-box;
-  padding: 0;
-  margin: 0;
-}
-
-a {
-  color: inherit;
-  text-decoration: none;
-}
-
-.imgDark {
-  display: none;
-}
-
-@media (prefers-color-scheme: dark) {
-  html {
-    color-scheme: dark;
-  }
-
-  .imgLight {
-    display: none;
-  }
-  .imgDark {
-    display: unset;
-  }
-}
 
 :root {
   --background: oklch(1 0 0);
@@ -45,9 +11,9 @@ a {
   --card-foreground: oklch(0.148 0.004 228.8);
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.148 0.004 228.8);
-  --primary: oklch(0.508 0.118 165.612);
+  --primary: oklch(0.8085 0.1498 162.3);
   --primary-foreground: oklch(0.979 0.021 166.113);
-  --secondary: oklch(0.967 0.001 286.375);
+  --secondary: oklch(0.7107 0.0351 256.79);
   --secondary-foreground: oklch(0.21 0.006 285.885);
   --muted: oklch(0.963 0.002 197.1);
   --muted-foreground: oklch(0.56 0.021 213.5);
@@ -163,31 +129,6 @@ a {
   }
 }
 
-/* ── Tradechat brand utilities ─────────────────────────────────────────────── */
-.brand-gradient {
-  background: linear-gradient(135deg, #10b981 0%, #059669 50%, #047857 100%);
-}
-
-.brand-gradient-text {
-  background: linear-gradient(135deg, #34d399, #10b981, #059669);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-}
-
-.card-glow {
-  box-shadow:
-    0 0 40px -10px rgba(16, 185, 129, 0.15),
-    0 20px 60px -20px rgba(0, 0, 0, 0.5);
-}
-
-.card-glow-hover:hover {
-  box-shadow:
-    0 0 60px -10px rgba(16, 185, 129, 0.25),
-    0 20px 60px -20px rgba(0, 0, 0, 0.5);
-}
-
-select option {
-  background-color: #161c2d;
-  color: white;
+.blur-circle {
+  filter: blur(120px);
 }

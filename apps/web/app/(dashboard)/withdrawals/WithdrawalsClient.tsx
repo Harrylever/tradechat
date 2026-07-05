@@ -1,26 +1,26 @@
-"use client"
+'use client'
 
-import { useState } from "react"
-import { format } from "date-fns"
-import { WithdrawPanel } from "@/components/dashboard/WithdrawPanel"
-import type { BankAccount, Withdrawal } from "@/lib/api"
+import { useState } from 'react'
+
+import { format } from 'date-fns'
+
+import { WithdrawPanel } from '@/app/(dashboard)/dashboard/components/WithdrawPanel'
+import { BankAccount, Withdrawal } from '@/services/withdrawal.service'
 
 const STATUS_STYLES: Record<string, string> = {
-  PENDING: "bg-amber-500/10 text-amber-400 border-amber-500/20",
-  PROCESSING: "bg-blue-500/10 text-blue-400 border-blue-500/20",
-  COMPLETED: "bg-emerald-500/10 text-emerald-400 border-emerald-500/20",
-  FAILED: "bg-red-500/10 text-red-400 border-red-500/20",
+  PENDING: 'bg-amber-500/10 text-amber-400 border-amber-500/20',
+  PROCESSING: 'bg-blue-500/10 text-blue-400 border-blue-500/20',
+  COMPLETED: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20',
+  FAILED: 'bg-red-500/10 text-red-400 border-red-500/20',
 }
 
 interface Props {
-  token: string
   balance: number
   withdrawals: Withdrawal[]
   bankAccount: BankAccount | null
 }
 
 export function WithdrawalsClient({
-  token,
   balance,
   withdrawals: initial,
   bankAccount: initAccount,
@@ -39,32 +39,31 @@ export function WithdrawalsClient({
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-2xl font-bold text-white tracking-tight">
+        <h1 className="text-2xl font-bold tracking-tight text-white">
           Withdrawals
         </h1>
-        <p className="text-slate-400 text-sm mt-1">
+        <p className="mt-1 text-sm text-slate-400">
           Manage your payout bank account and request withdrawals
         </p>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
+      <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-2">
         {/* Panel */}
         <WithdrawPanel
           key={key}
-          token={token}
           balance={balance}
           existingAccount={bankAccount}
           onSuccess={handleSuccess}
         />
 
         {/* Withdrawal History */}
-        <div className="bg-white/[0.04] border border-white/[0.07] rounded-2xl overflow-hidden">
-          <div className="px-6 py-4 border-b border-white/[0.06]">
-            <h2 className="text-white font-semibold">Withdrawal History</h2>
+        <div className="overflow-hidden rounded-2xl border border-white/[0.07] bg-white/[0.04]">
+          <div className="border-b border-white/[0.06] px-6 py-4">
+            <h2 className="font-semibold text-white">Withdrawal History</h2>
           </div>
 
           {withdrawals.length === 0 ? (
-            <div className="px-6 py-12 text-center text-slate-500 text-sm">
+            <div className="px-6 py-12 text-center text-sm text-slate-500">
               No withdrawals yet
             </div>
           ) : (
@@ -72,18 +71,18 @@ export function WithdrawalsClient({
               {withdrawals.map((w) => (
                 <div
                   key={w.id}
-                  className="flex items-center justify-between px-6 py-4 hover:bg-white/[0.02] transition-colors"
+                  className="flex items-center justify-between px-6 py-4 transition-colors hover:bg-white/[0.02]"
                 >
                   <div>
-                    <p className="text-white font-semibold">
+                    <p className="font-semibold text-white">
                       ₦{w.amountNaira.toLocaleString()}
                     </p>
-                    <p className="text-slate-500 text-xs mt-0.5">
-                      {format(new Date(w.createdAt), "dd MMM yyyy, HH:mm")}
+                    <p className="mt-0.5 text-xs text-slate-500">
+                      {format(new Date(w.createdAt), 'dd MMM yyyy, HH:mm')}
                     </p>
                   </div>
                   <span
-                    className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${STATUS_STYLES[w.status] ?? ""}`}
+                    className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-medium ${STATUS_STYLES[w.status] ?? ''}`}
                   >
                     {w.status.charAt(0) + w.status.slice(1).toLowerCase()}
                   </span>

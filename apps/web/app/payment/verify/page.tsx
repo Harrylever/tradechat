@@ -1,20 +1,22 @@
-"use client"
+'use client'
 
-import { useEffect, useState, useCallback } from "react"
-import { useSearchParams } from "next/navigation"
-import { getTransaction, type Transaction } from "@/lib/api"
+import { useEffect, useState, useCallback } from 'react'
 
-type Status = "loading" | "PAID" | "FAILED" | "AWAITING"
+import { useSearchParams } from 'next/navigation'
+
+import { getTransaction, Transaction } from '@/services/transaction.service'
+
+type Status = 'loading' | 'PAID' | 'FAILED' | 'AWAITING'
 
 function ConfettiPiece({ i }: { i: number }) {
-  const colors = ["#10b981", "#34d399", "#6ee7b7", "#059669", "#fff", "#fbbf24"]
+  const colors = ['#10b981', '#34d399', '#6ee7b7', '#059669', '#fff', '#fbbf24']
   const style = {
     left: `${(i * 37 + 11) % 100}%`,
-    top: "-10px",
+    top: '-10px',
     backgroundColor: colors[i % colors.length],
-    width: i % 3 === 0 ? "8px" : "6px",
-    height: i % 3 === 0 ? "8px" : "12px",
-    borderRadius: i % 2 === 0 ? "50%" : "2px",
+    width: i % 3 === 0 ? '8px' : '6px',
+    height: i % 3 === 0 ? '8px' : '12px',
+    borderRadius: i % 2 === 0 ? '50%' : '2px',
     animation: `confetti-fall ${1.5 + (i % 3) * 0.4}s ease-in ${(i * 0.07) % 1.2}s forwards`,
   } as React.CSSProperties
   return <div className="absolute" style={style} />
@@ -22,13 +24,13 @@ function ConfettiPiece({ i }: { i: number }) {
 
 export default function PaymentVerifyPage() {
   const params = useSearchParams()
-  const trxref = params.get("trxref")
+  const trxref = params.get('trxref')
 
-  const [status, setStatus] = useState<Status>("loading")
+  const [status, setStatus] = useState<Status>('loading')
   const [tx, setTx] = useState<
     (Transaction & { merchant: { businessName: string } }) | null
   >(null)
-  const [errorMsg, setErrorMsg] = useState("")
+  const [errorMsg, setErrorMsg] = useState('')
   const [elapsed, setElapsed] = useState(0)
 
   const POLL_INTERVAL = 3000
@@ -36,26 +38,26 @@ export default function PaymentVerifyPage() {
 
   const fetchTx = useCallback(async () => {
     if (!trxref) {
-      setStatus("FAILED")
-      setErrorMsg("No transaction reference provided.")
+      setStatus('FAILED')
+      setErrorMsg('No transaction reference provided.')
       return
     }
     try {
       const data = await getTransaction(trxref)
       setTx(data)
 
-      if (data.status === "PAID") {
-        setStatus("PAID")
-      } else if (data.status === "FAILED" || data.status === "CANCELLED") {
-        setStatus("FAILED")
-        setErrorMsg("This payment was not completed. Please try again.")
+      if (data.status === 'PAID') {
+        setStatus('PAID')
+      } else if (data.status === 'FAILED' || data.status === 'CANCELLED') {
+        setStatus('FAILED')
+        setErrorMsg('This payment was not completed. Please try again.')
       } else {
         // still awaiting — keep polling (handled by useEffect)
-        setStatus("AWAITING")
+        setStatus('AWAITING')
       }
     } catch (e: any) {
-      setStatus("FAILED")
-      setErrorMsg(e.message || "Transaction not found.")
+      setStatus('FAILED')
+      setErrorMsg(e.message || 'Transaction not found.')
     }
   }, [trxref])
 
@@ -66,9 +68,9 @@ export default function PaymentVerifyPage() {
       setElapsed((prev) => {
         if (prev >= MAX_WAIT) {
           clearInterval(interval)
-          setStatus("FAILED")
+          setStatus('FAILED')
           setErrorMsg(
-            "Payment verification timed out. If you paid, please contact support.",
+            'Payment verification timed out. If you paid, please contact support.',
           )
           return prev
         }
@@ -83,7 +85,7 @@ export default function PaymentVerifyPage() {
 
   // Stop polling once resolved
   useEffect(() => {
-    if (status === "PAID" || status === "FAILED") {
+    if (status === 'PAID' || status === 'FAILED') {
       // useEffect cleanup above handles interval clearing
     }
   }, [status])
@@ -107,16 +109,16 @@ export default function PaymentVerifyPage() {
         .animate-pulse-ring { animation: pulse-ring 1.4s ease-out infinite; }
       `}</style>
 
-      <div className="min-h-screen flex items-center justify-center bg-[#0a0f1e] relative overflow-hidden px-4">
+      <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-[#0a0f1e] px-4">
         {/* Background blobs */}
-        <div className="absolute inset-0 pointer-events-none overflow-hidden">
-          <div className="absolute top-1/3 left-1/4 w-80 h-80 bg-emerald-500/8 rounded-full blur-3xl" />
-          <div className="absolute bottom-1/3 right-1/4 w-80 h-80 bg-blue-500/5 rounded-full blur-3xl" />
+        <div className="pointer-events-none absolute inset-0 overflow-hidden">
+          <div className="absolute top-1/3 left-1/4 h-80 w-80 rounded-full bg-emerald-500/8 blur-3xl" />
+          <div className="absolute right-1/4 bottom-1/3 h-80 w-80 rounded-full bg-blue-500/5 blur-3xl" />
         </div>
 
         {/* Confetti */}
-        {status === "PAID" && (
-          <div className="fixed inset-0 pointer-events-none overflow-hidden z-10">
+        {status === 'PAID' && (
+          <div className="pointer-events-none fixed inset-0 z-10 overflow-hidden">
             {Array.from({ length: 30 }, (_, i) => (
               <ConfettiPiece key={i} i={i} />
             ))}
@@ -125,46 +127,46 @@ export default function PaymentVerifyPage() {
 
         {/* Card */}
         <div className="relative z-20 w-full max-w-sm">
-          {status === "loading" || status === "AWAITING" ? (
-            <div className="bg-white/[0.04] border border-white/[0.08] rounded-3xl p-10 text-center shadow-2xl backdrop-blur-sm">
+          {status === 'loading' || status === 'AWAITING' ? (
+            <div className="rounded-3xl border border-white/[0.08] bg-white/[0.04] p-10 text-center shadow-2xl backdrop-blur-sm">
               {/* Spinner */}
-              <div className="relative flex items-center justify-center mb-8">
-                <div className="absolute w-20 h-20 border-2 border-emerald-500/20 rounded-full animate-pulse-ring" />
-                <div className="w-16 h-16 border-4 border-white/10 border-t-emerald-400 rounded-full animate-spin" />
+              <div className="relative mb-8 flex items-center justify-center">
+                <div className="animate-pulse-ring absolute h-20 w-20 rounded-full border-2 border-emerald-500/20" />
+                <div className="h-16 w-16 animate-spin rounded-full border-4 border-white/10 border-t-emerald-400" />
               </div>
-              <h1 className="text-white text-xl font-bold mb-2">
+              <h1 className="mb-2 text-xl font-bold text-white">
                 Verifying payment…
               </h1>
-              <p className="text-slate-400 text-sm">
+              <p className="text-sm text-slate-400">
                 {tx
                   ? `${tx.itemDescription} · ₦${Number(tx.totalAmount).toLocaleString()}`
-                  : "Please wait a moment"}
+                  : 'Please wait a moment'}
               </p>
               {/* Progress bar */}
-              <div className="mt-6 w-full bg-white/[0.06] rounded-full h-1.5 overflow-hidden">
+              <div className="mt-6 h-1.5 w-full overflow-hidden rounded-full bg-white/[0.06]">
                 <div
-                  className="h-full bg-emerald-500 rounded-full transition-all duration-1000"
+                  className="h-full rounded-full bg-emerald-500 transition-all duration-1000"
                   style={{
                     width: `${Math.min((elapsed / MAX_WAIT) * 100, 100)}%`,
                   }}
                 />
               </div>
-              <p className="text-slate-600 text-xs mt-2">
+              <p className="mt-2 text-xs text-slate-600">
                 Auto-checking every 3 seconds
               </p>
             </div>
-          ) : status === "PAID" ? (
-            <div className="bg-white/[0.04] border border-emerald-500/20 rounded-3xl p-10 text-center shadow-2xl shadow-emerald-500/10 backdrop-blur-sm animate-scale-in">
+          ) : status === 'PAID' ? (
+            <div className="animate-scale-in rounded-3xl border border-emerald-500/20 bg-white/[0.04] p-10 text-center shadow-2xl shadow-emerald-500/10 backdrop-blur-sm">
               {/* Success icon */}
-              <div className="relative flex items-center justify-center mb-8">
-                <div className="absolute w-24 h-24 bg-emerald-500/10 rounded-full animate-pulse-ring" />
-                <div className="w-20 h-20 bg-gradient-to-br from-emerald-400 to-emerald-600 rounded-full flex items-center justify-center shadow-lg shadow-emerald-500/40">
+              <div className="relative mb-8 flex items-center justify-center">
+                <div className="animate-pulse-ring absolute h-24 w-24 rounded-full bg-emerald-500/10" />
+                <div className="flex h-20 w-20 items-center justify-center rounded-full bg-gradient-to-br from-emerald-400 to-emerald-600 shadow-lg shadow-emerald-500/40">
                   <svg
                     viewBox="0 0 24 24"
                     fill="none"
                     stroke="white"
                     strokeWidth={2.5}
-                    className="w-10 h-10"
+                    className="h-10 w-10"
                   >
                     <path
                       d="M20 6L9 17l-5-5"
@@ -175,15 +177,15 @@ export default function PaymentVerifyPage() {
                 </div>
               </div>
 
-              <h1 className="text-white text-2xl font-bold mb-1">
+              <h1 className="mb-1 text-2xl font-bold text-white">
                 Payment Confirmed!
               </h1>
-              <p className="text-emerald-400 text-sm mb-8">
+              <p className="mb-8 text-sm text-emerald-400">
                 Your transaction was successful
               </p>
 
               {tx && (
-                <div className="bg-white/[0.04] border border-white/[0.07] rounded-2xl p-5 text-left space-y-3 mb-8">
+                <div className="mb-8 space-y-3 rounded-2xl border border-white/[0.07] bg-white/[0.04] p-5 text-left">
                   <Row label="Merchant" value={tx.merchant.businessName} />
                   <Row label="Item" value={tx.itemDescription} />
                   <Row
@@ -200,34 +202,34 @@ export default function PaymentVerifyPage() {
                 </div>
               )}
 
-              <p className="text-slate-500 text-xs">
+              <p className="text-xs text-slate-500">
                 A record of this payment has been sent to the merchant.
               </p>
             </div>
           ) : (
-            <div className="bg-white/[0.04] border border-red-500/20 rounded-3xl p-10 text-center shadow-2xl backdrop-blur-sm animate-scale-in">
+            <div className="animate-scale-in rounded-3xl border border-red-500/20 bg-white/[0.04] p-10 text-center shadow-2xl backdrop-blur-sm">
               {/* Error icon */}
-              <div className="w-20 h-20 bg-red-500/10 border border-red-500/20 rounded-full flex items-center justify-center mx-auto mb-8">
+              <div className="mx-auto mb-8 flex h-20 w-20 items-center justify-center rounded-full border border-red-500/20 bg-red-500/10">
                 <svg
                   viewBox="0 0 24 24"
                   fill="none"
                   stroke="#f87171"
                   strokeWidth={2}
-                  className="w-10 h-10"
+                  className="h-10 w-10"
                 >
                   <circle cx="12" cy="12" r="10" />
                   <path d="M15 9l-6 6M9 9l6 6" strokeLinecap="round" />
                 </svg>
               </div>
 
-              <h1 className="text-white text-2xl font-bold mb-2">
+              <h1 className="mb-2 text-2xl font-bold text-white">
                 Payment Failed
               </h1>
-              <p className="text-slate-400 text-sm mb-8">{errorMsg}</p>
+              <p className="mb-8 text-sm text-slate-400">{errorMsg}</p>
 
               <a
                 href="/"
-                className="inline-block px-6 py-2.5 rounded-xl bg-white/[0.07] hover:bg-white/[0.12] text-white text-sm font-medium transition-all"
+                className="inline-block rounded-xl bg-white/[0.07] px-6 py-2.5 text-sm font-medium text-white transition-all hover:bg-white/[0.12]"
               >
                 Return to homepage
               </a>
@@ -235,9 +237,9 @@ export default function PaymentVerifyPage() {
           )}
 
           {/* Branding */}
-          <div className="text-center mt-6">
-            <span className="text-slate-600 text-xs">Powered by </span>
-            <span className="text-slate-500 text-xs font-semibold">
+          <div className="mt-6 text-center">
+            <span className="text-xs text-slate-600">Powered by </span>
+            <span className="text-xs font-semibold text-slate-500">
               Tradechat
             </span>
           </div>
@@ -258,9 +260,9 @@ function Row({
 }) {
   return (
     <div className="flex items-center justify-between">
-      <span className="text-slate-500 text-xs">{label}</span>
+      <span className="text-xs text-slate-500">{label}</span>
       <span
-        className={`text-sm font-medium ${highlight ? "text-emerald-400" : "text-white"}`}
+        className={`text-sm font-medium ${highlight ? 'text-emerald-400' : 'text-white'}`}
       >
         {value}
       </span>

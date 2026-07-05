@@ -7,6 +7,7 @@ import {
 import { ConfigService } from '@nestjs/config';
 import Redis from 'ioredis';
 import * as Sentry from '@sentry/nestjs';
+import { getRedisConnectionParams } from './redis.config';
 
 @Injectable()
 export class RedisService implements OnModuleInit, OnModuleDestroy {
@@ -15,7 +16,9 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
   private readonly url: string | undefined;
 
   constructor(private readonly config: ConfigService) {
-    this.url = this.config.get<string>('REDIS_URL');
+    // this.url = this.config.get<string>('REDIS_URL');
+    const options = getRedisConnectionParams(config);
+    this.url = options?.url;
   }
 
   async onModuleInit() {
@@ -64,7 +67,7 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
 
   /**
    * Expose the raw ioredis client for consumers that need it
-   * (e.g. BullMQ, ThrottlerStorageRedisService).
+   * (e.g. ThrottlerStorageRedisService).
    * Returns null when Redis is unavailable.
    */
   get rawClient(): Redis | null {

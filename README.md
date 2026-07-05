@@ -34,6 +34,7 @@ Twilio WhatsApp Business API ──(webhook)──► NestJS Backend
 ```
 
 **Core loop:**
+
 1. Merchant sends a free-text sale message on WhatsApp
 2. Twilio forwards it to a NestJS webhook endpoint
 3. Gemini extracts structured data (item, qty, price, customer)
@@ -48,18 +49,18 @@ Twilio WhatsApp Business API ──(webhook)──► NestJS Backend
 
 ## Tech Stack
 
-| Layer | Choice |
-|---|---|
-| Messaging | Twilio WhatsApp Business API |
-| AI parsing | Google Gemini 1.5 Flash |
-| Payments | Nomba Checkout API + Virtual Accounts + Webhooks |
-| Backend | NestJS (Node.js / TypeScript) |
-| ORM / DB | Prisma + PostgreSQL (Railway) |
-| Cache / Queue | Upstash Redis + BullMQ |
-| Dashboard | Next.js + Tailwind |
-| Auth | Clerk |
-| Hosting (backend) | Railway |
-| Hosting (dashboard) | Vercel |
+| Layer               | Choice                                           |
+| ------------------- | ------------------------------------------------ |
+| Messaging           | Twilio WhatsApp Business API                     |
+| AI parsing          | Google Gemini 1.5 Flash                          |
+| Payments            | Nomba Checkout API + Virtual Accounts + Webhooks |
+| Backend             | NestJS (Node.js / TypeScript)                    |
+| ORM / DB            | Prisma + PostgreSQL (Railway)                    |
+| Cache / Queue       | Upstash Redis + BullMQ                           |
+| Dashboard           | Next.js + Tailwind                               |
+| Auth                | Clerk                                            |
+| Hosting (backend)   | Railway                                          |
+| Hosting (dashboard) | Vercel                                           |
 
 ---
 
@@ -107,21 +108,21 @@ Copy the example env file in the backend and fill in your credentials:
 cp apps/backend/.env.example apps/backend/.env
 ```
 
-| Variable | Description |
-|---|---|
-| `DATABASE_URL` | PostgreSQL connection string |
-| `TWILIO_ACCOUNT_SID` | Twilio account SID |
-| `TWILIO_AUTH_TOKEN` | Twilio auth token |
-| `TWILIO_WHATSAPP_FROM` | Sandbox number e.g. `whatsapp:+14155238886` |
-| `GEMINI_API_KEY` | Google AI Studio key |
-| `NOMBA_BASE_URL` | `https://sandbox.api.nomba.com/v1` (sandbox) |
-| `NOMBA_ACCOUNT_ID` | Nomba parent account UUID |
-| `NOMBA_CLIENT_ID` | Nomba OAuth client ID |
-| `NOMBA_CLIENT_SECRET` | Nomba OAuth client secret |
-| `NOMBA_WEBHOOK_SECRET` | Nomba webhook signature key |
-| `REDIS_URL` | Upstash Redis URL |
-| `API_SECRET` | Internal secret for dashboard ↔ backend calls |
-| `PORT` | Server port (default `3001`) |
+| Variable               | Description                                   |
+| ---------------------- | --------------------------------------------- |
+| `DATABASE_URL`         | PostgreSQL connection string                  |
+| `TWILIO_ACCOUNT_SID`   | Twilio account SID                            |
+| `TWILIO_AUTH_TOKEN`    | Twilio auth token                             |
+| `TWILIO_WHATSAPP_FROM` | Sandbox number e.g. `whatsapp:+14155238886`   |
+| `GEMINI_API_KEY`       | Google AI Studio key                          |
+| `NOMBA_BASE_URL`       | `https://sandbox.api.nomba.com/v1` (sandbox)  |
+| `NOMBA_ACCOUNT_ID`     | Nomba parent account UUID                     |
+| `NOMBA_CLIENT_ID`      | Nomba OAuth client ID                         |
+| `NOMBA_CLIENT_SECRET`  | Nomba OAuth client secret                     |
+| `NOMBA_WEBHOOK_SECRET` | Nomba webhook signature key                   |
+| `REDIS_URL`            | Upstash Redis URL                             |
+| `JWT_SECRET`           | Internal secret for dashboard ↔ backend calls |
+| `PORT`                 | Server port (default `3001`)                  |
 
 ### Database
 
@@ -185,6 +186,7 @@ The backend exposes:
 **Track:** Infrastructure
 
 ### Success criteria
+
 - [ ] Merchant onboards entirely via WhatsApp in under 5 minutes
 - [ ] A sale message produces a live Nomba checkout link within 60 seconds
 - [ ] Nomba webhook triggers merchant confirmation within 10 seconds of payment
@@ -195,6 +197,6 @@ The backend exposes:
 
 ## Author
 
-| Name | Role |
-|---|---|
+| Name | Role                        |
+| ---- | --------------------------- |
 | Dean | Full-stack / AI integration |
