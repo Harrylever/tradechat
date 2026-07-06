@@ -1,5 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
+import { normalizePhoneNumber } from 'src/common/utils/phone';
 
 @Injectable()
 export class MerchantService {
@@ -46,7 +47,13 @@ export class MerchantService {
 
   async updateMerchant(
     id: string,
-    data: { businessName?: string; nombaMerchantId?: string },
+    data: {
+      businessName?: string;
+      ownerName?: string;
+      productCategory?: string;
+      nombaMerchantId?: string;
+      onboardingComplete?: boolean;
+    },
   ) {
     return await this.prisma.merchant.update({
       where: { id },
@@ -55,9 +62,29 @@ export class MerchantService {
   }
 
   async findByPhone(phone: string) {
-    const clean = phone.startsWith('+') ? phone : `+${phone}`;
+    const clean = normalizePhoneNumber(phone);
     return await this.prisma.merchant.findUnique({
       where: { whatsappNumber: clean },
+    });
+  }
+
+  async findOrCreateByPhone(rawPhone: string) {
+    const whatsappNumber = normalizePhoneNumber(rawPhone);
+
+    const existing = await this.prisma.merchant.findUnique({
+      where: { whatsappNumber },
+    });
+    if (existing) return existing;
+
+    return this.prisma.merchant.create({
+      data: {
+        businessName: `Trader ${whatsappNumber.slice(-5)}`,
+        whatsappNumber,
+        tier: 'FREE',
+        // onboardingComplete defaults to false — this is what gates
+        // whether the merchant sees a setup step before the real
+        // dashboard, regardless of which surface created the account.
+      },
     });
   }
 }

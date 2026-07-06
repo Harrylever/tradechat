@@ -9,11 +9,13 @@ import { ConfigService } from '@nestjs/config';
 import { TwilioService } from '../../twilio/twilio.service';
 import { PrismaService } from '../../prisma/prisma.service';
 import { RedisService } from '../../redis/redis.service';
+import { MerchantService } from '../merchant/merchant.service';
+import { normalizePhoneNumber } from 'src/common/utils/phone';
 
 @Injectable()
 export class AuthService {
   private readonly logger = new Logger(AuthService.name);
-  // In-memory OTP store keyed by whatsappNumber (fallback if Redis is offline)
+
   private readonly otpStore = new Map<
     string,
     { otp: string; expiresAt: number }
@@ -25,24 +27,17 @@ export class AuthService {
     private readonly prisma: PrismaService,
     private readonly config: ConfigService,
     private readonly redisService: RedisService,
+    private readonly merchantService: MerchantService,
   ) {}
-
-  /** Normalize a WhatsApp number to E.164 format */
-  private normalizeNumber(raw: string): string {
-    const trimmed = raw.trim().replace(/\s+/g, '');
-    return trimmed.startsWith('+') ? trimmed : `+${trimmed}`;
-  }
 
   private keyGenerator = (whatsappNumber: string) => {
     return `auth:otp:${whatsappNumber}`;
   };
 
   async requestOtp(rawNumber: string): Promise<{ message: string }> {
-    const whatsappNumber = this.normalizeNumber(rawNumber);
+    const whatsappNumber = normalizePhoneNumber(rawNumber);
 
-    const merchant = await this.prisma.merchant.findUnique({
-      where: { whatsappNumber },
-    });
+    const merchant = await this.merchantService.findByPhone(whatsappNumber);
 
     if (!merchant) {
       throw new BadRequestException(
@@ -70,7 +65,7 @@ export class AuthService {
     rawNumber: string,
     otp: string,
   ): Promise<{ accessToken: string; merchant: any }> {
-    const whatsappNumber = this.normalizeNumber(rawNumber);
+    const whatsappNumber = normalizePhoneNumber(rawNumber);
     const key = this.keyGenerator(whatsappNumber);
 
     const storedRedis = await this.redisService.getJson<{
@@ -100,9 +95,8 @@ export class AuthService {
     this.otpStore.delete(whatsappNumber);
     await this.redisService.del(key);
 
-    const merchant = await this.prisma.merchant.findUnique({
-      where: { whatsappNumber },
-    });
+    const merchant =
+      await this.merchantService.findOrCreateByPhone(whatsappNumber);
 
     if (!merchant) {
       throw new BadRequestException('Merchant not found');
@@ -121,6 +115,7 @@ export class AuthService {
         businessName: m.businessName,
         whatsappNumber: m.whatsappNumber,
         tier: m.tier,
+        onboardingComplete: m.onboardingComplete,
       },
     };
   }

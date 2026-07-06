@@ -11,6 +11,7 @@ import {
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { PrismaService } from '../../prisma/prisma.service';
 import { NotificationService } from '../../twilio/notification.service';
+import { LedgerService } from '../ledger/ledger.service';
 import { NombaSignatureGuard } from './nomba-signature.guard';
 
 @ApiTags('Webhooks - Nomba')
@@ -21,6 +22,7 @@ export class NombaWebhookController {
   constructor(
     private readonly prisma: PrismaService,
     private readonly notificationService: NotificationService,
+    private readonly ledgerService: LedgerService,
   ) {}
 
   @Post()
@@ -100,13 +102,21 @@ export class NombaWebhookController {
         return { received: true, status: 'already_paid' };
       }
 
-      await this.prisma.transaction.updateMany({
+      const { count } = await this.prisma.transaction.updateMany({
         where: { id: transaction.id, status: 'AWAITING_PAYMENT' },
         data: {
           status: 'PAID',
           paidAt: new Date(),
         },
       });
+
+      if (count > 0) {
+        await this.ledgerService.creditForPaidTransaction(
+          transaction.id,
+          transaction.merchantId,
+          Number(transaction.totalAmount),
+        );
+      }
 
       this.logger.log(
         `Successfully updated transaction ${transaction.id} (${ref}) status to PAID via [${eventType}]`,

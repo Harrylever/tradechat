@@ -7,6 +7,8 @@ export async function getMerchantProfile() {
     id: string
     businessName: string
     whatsappNumber: string
+    nombaMerchantId?: string
+    balanceNaira?: number | string
     tier: string
     onboardingComplete: boolean
   }>(`/merchants/me`)
@@ -20,3 +22,18 @@ export async function getMerchantStats() {
     totalVolumeNaira: number
   }>(`/merchants/me/stats`)
 }
+
+export async function updateMerchantProfile(data: {
+  businessName?: string
+  nombaMerchantId?: string
+}) {
+  return api.patch<{
+    id: string
+    businessName: string
+    whatsappNumber: string
+    nombaMerchantId?: string
+    tier: string
+    onboardingComplete: boolean
+  }>(`/merchants/me`, data)
+}
+

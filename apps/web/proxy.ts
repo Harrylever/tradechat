@@ -3,25 +3,37 @@ import type { NextRequest } from 'next/server'
 
 import { ACCESS_TOKEN_COOKIE_NAME } from '@/lib/auth'
 
-const publicPaths = ['/', '/login']
+const publicPathPrefixes = ['/login', '/get-started', '/auth']
+const exactPublicPaths = ['/']
 
+function isPublic(pathname: string): boolean {
+  return (
+    exactPublicPaths.includes(pathname) ||
+    publicPathPrefixes.some((prefix) => pathname.startsWith(prefix))
+  )
+}
 export function proxy(request: NextRequest) {
   const token = request.cookies.get(ACCESS_TOKEN_COOKIE_NAME)?.value
   const pathname = request.nextUrl.pathname
+  const isPublicRoute = isPublic(pathname)
 
-  const isPublicPath = publicPaths.some((path) => pathname === path)
-
-  if (!token && !isPublicPath) {
+  if (!token && !isPublicRoute) {
     const loginUrl = new URL('/login', request.url)
     return NextResponse.redirect(loginUrl)
   }
 
-  // Auth routes: redirect already authenticated users away from /login
-  if (isPublicPath && token) {
+  if (pathname.startsWith('/login') && token) {
     return NextResponse.redirect(new URL('/dashboard', request.url))
   }
 
-  return NextResponse.next()
+  const requestHeaders = new Headers(request.headers)
+  requestHeaders.set('x-pathname', pathname)
+
+  return NextResponse.next({
+    request: {
+      headers: requestHeaders,
+    },
+  })
 }
 
 export const config = {

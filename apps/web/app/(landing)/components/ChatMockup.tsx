@@ -19,8 +19,8 @@ export function ChatMockup() {
             <HugeiconsIcon icon={BotIcon} size={20} />
           </div>
           <div>
-            <h3 className="text-sm leading-tight font-semibold text-white">
-              TradeChat
+            <h3 className="font-heading text-sm leading-tight font-semibold text-white">
+              Tradechat
             </h3>
             <div className="mt-0.5 flex items-center gap-1.5">
               <span className="h-2 w-2 animate-pulse rounded-full bg-[#4EDEA3]" />

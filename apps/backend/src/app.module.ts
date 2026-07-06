@@ -18,6 +18,7 @@ import { JobsModule } from './jobs/jobs.module';
 import { SentryModule } from '@sentry/nestjs/setup';
 import { AuthModule } from './api/auth/auth.module';
 import { WithdrawalModule } from './api/withdrawal/withdrawal.module';
+import { LedgerModule } from './api/ledger/ledger.module';
 import { RedisModule } from './redis/redis.module';
 import { APP_GUARD } from '@nestjs/core';
 import { getRedisConnectionParams } from './redis/redis.config';
@@ -78,6 +79,7 @@ import { getRedisConnectionParams } from './redis/redis.config';
     TransactionModule,
     AuthModule,
     WithdrawalModule,
+    LedgerModule,
     RedisModule,
     JobsModule,
   ],

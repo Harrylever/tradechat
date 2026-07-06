@@ -10,7 +10,6 @@ import {
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { InjectQueue } from '@nestjs/bullmq';
 import { Queue } from 'bullmq';
-import { WhatsAppService } from './whatsapp.service';
 import { TwilioWebhookGuard } from '../../twilio/twilio-webhook.guard';
 
 @ApiTags('Webhooks - Twilio WhatsApp')
@@ -19,7 +18,6 @@ export class WhatsAppController {
   private readonly logger = new Logger(WhatsAppController.name);
 
   constructor(
-    private readonly whatsappService: WhatsAppService,
     @InjectQueue('whatsapp-messages') private readonly whatsappQueue: Queue,
   ) {}
 

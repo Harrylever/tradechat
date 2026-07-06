@@ -41,7 +41,7 @@ export function NavItem({
       href={href}
       onClick={handleSetCompletePath}
       className={cn(
-        'text-secondary text-sm font-medium transition-colors duration-300 hover:text-white',
+        'text-sm font-medium text-gray-300 transition-colors duration-300 hover:text-white',
         isActive && 'text-primary! font-bold underline',
       )}
     >

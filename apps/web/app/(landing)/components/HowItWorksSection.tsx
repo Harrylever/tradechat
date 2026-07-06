@@ -9,13 +9,13 @@ const STEPS = [
   },
   {
     badge: <span className="text-sm font-bold">2</span>,
-    title: 'You tell TradeChat',
+    title: 'You tell Tradechat',
     desc: 'Just type the sale like you\'d tell a friend — "Sold 5 bags rice to Ade, 87500". No forms, no app to open.',
   },
   {
     badge: <span className="text-sm font-bold">3</span>,
     title: 'AI creates a payment link',
-    desc: 'TradeChat confirms the order with you, then generates a secure Nomba checkout link instantly',
+    desc: 'Tradechat confirms the order with you, then generates a secure Nomba checkout link instantly',
   },
   {
     badge: <HugeiconsIcon icon={Tick01Icon} size={20} />,

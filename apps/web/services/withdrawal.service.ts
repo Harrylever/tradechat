@@ -41,7 +41,6 @@ export async function saveBankAccount(data: {
   accountNumber: string
   accountName: string
 }) {
-  'use server'
   return api.patch<BankAccount>('/withdrawals/bank-account', {
     data,
   })

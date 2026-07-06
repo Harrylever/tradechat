@@ -6,12 +6,15 @@ import { WhatsAppProcessor } from './whatsapp.processor';
 import { GeminiModule } from '../../gemini/gemini.module';
 import { NombaModule } from '../nomba/nomba.module';
 import { TwilioModule } from '../../twilio/twilio.module';
+import { MerchantModule } from '../merchant/merchant.module';
+import { AuthModule } from '../auth/auth.module';
 
 @Module({
   imports: [
     GeminiModule,
     NombaModule,
     TwilioModule,
+    AuthModule,
     BullModule.registerQueue({
       name: 'whatsapp-messages',
       defaultJobOptions: {
@@ -21,6 +24,7 @@ import { TwilioModule } from '../../twilio/twilio.module';
         removeOnFail: 100,
       },
     }),
+    MerchantModule,
   ],
   controllers: [WhatsAppController],
   providers: [WhatsAppService, WhatsAppProcessor],

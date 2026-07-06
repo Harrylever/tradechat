@@ -13,11 +13,21 @@ export interface ExtractedOrder {
   missingFields?: string[];
 }
 
+export interface ExtractedOnboarding {
+  confidence: 'HIGH' | 'LOW';
+  ownerName?: string;
+  businessName?: string;
+  productCategory?: string;
+  clarifyingQuestion?: string;
+  /** Which required fields Gemini (or our validator) couldn't confidently fill. */
+  missingFields?: string[];
+}
+
 // Sanity bounds for a single WhatsApp-originated transaction.
 // Anything outside this range gets forced to LOW confidence regardless
 // of what the model reports, since a misparse here creates a real
 // payment link for the wrong amount.
-const MIN_AMOUNT_NAIRA = 50;
+const MIN_AMOUNT_NAIRA = 100;
 const MAX_AMOUNT_NAIRA = 1_000_000;
 
 const GEMINI_MODEL = 'gemini-2.5-flash';
@@ -150,6 +160,231 @@ Only ever set confidence to "HIGH" if you are also returning a non-empty itemDes
     return validated;
   }
 
+  async parseOnboardingMessage(
+    messageText: string,
+  ): Promise<ExtractedOnboarding> {
+    this.logger.log(
+      `Parsing onboarding message with Gemini: "${messageText}"`,
+      'GeminiService',
+    );
+
+    if (!this.ai) {
+      return {
+        confidence: 'LOW',
+        clarifyingQuestion: "Oya let's set you up! First — wetin be your name?",
+        missingFields: ['ownerName', 'businessName', 'productCategory'],
+      };
+    }
+
+    const systemPrompt = `You are TradeChat AI, helping Nigerian market traders set up their business profile on WhatsApp.
+Analyze the user message and extract onboarding details: ownerName, businessName, and productCategory.
+
+The user may be filling in a template that uses square brackets to mark where an answer goes, e.g.:
+"My name is [John]\nMy business is [Ade Stores]\nI sell [shoes]"
+If a bracketed field contains a REAL answer (like "[John]" or "[Ade Stores]"), extract it WITHOUT the brackets.
+If a bracketed field still contains the literal unfilled placeholder text (e.g. "[Your Name]", "[Business Name]", "[What You Sell]" — case-insensitive), treat that specific field as NOT PROVIDED. Do not invent a value for it, and do not let one unfilled field cause you to discard other fields the user DID fill in.
+
+Classify the described product or service into EXACTLY ONE of the following productCategory enum values:
+- FOOD_AND_GROCERIES (e.g., rice, provisions, foodstuff, drinks, snacks)
+- FASHION_AND_APPAREL (e.g., clothes, shoes, bags, boutique, tailoring, fabric)
+- ELECTRONICS_AND_GADGETS (e.g., phones, laptops, accessories, repairs, electronics)
+- BEAUTY_AND_PERSONAL_CARE (e.g., makeup, perfumes, skincare, salon, hair, cosmetics)
+- HOME_AND_LIVING (e.g., furniture, kitchenware, bedding, home decor, utensils)
+- SERVICES (e.g., laundry, photography, design, consulting, delivery, logistics)
+- OTHER (for anything genuinely ambiguous or unlisted; never invent a new category value)
+
+Only set confidence to "HIGH" if ownerName AND businessName AND productCategory are all clearly present or inferable (after excluding unfilled placeholder fields as described above).
+If any required field is missing or still an unfilled placeholder, set confidence to "LOW", list the missing fields in missingFields (using the keys: ownerName, businessName, productCategory), and provide a natural, friendly Nigerian English/Pidgin clarifyingQuestion asking for the FIRST missing detail only (e.g., "What's your name?" or "What is your business called?" or "Wetin you dey sell?").`;
+
+    let responseText: string;
+
+    try {
+      const response = await this.withTimeout(
+        this.ai.models.generateContent({
+          model: GEMINI_MODEL,
+          contents: `${systemPrompt}\n\nUser Message: "${messageText}"`,
+          config: {
+            responseMimeType: 'application/json',
+            responseSchema: {
+              type: Type.OBJECT,
+              properties: {
+                confidence: { type: Type.STRING, enum: ['HIGH', 'LOW'] },
+                ownerName: { type: Type.STRING },
+                businessName: { type: Type.STRING },
+                productCategory: {
+                  type: Type.STRING,
+                  enum: [
+                    'FOOD_AND_GROCERIES',
+                    'FASHION_AND_APPAREL',
+                    'ELECTRONICS_AND_GADGETS',
+                    'BEAUTY_AND_PERSONAL_CARE',
+                    'HOME_AND_LIVING',
+                    'SERVICES',
+                    'OTHER',
+                  ],
+                },
+                clarifyingQuestion: { type: Type.STRING },
+                missingFields: {
+                  type: Type.ARRAY,
+                  items: {
+                    type: Type.STRING,
+                  },
+                },
+              },
+              required: ['confidence'],
+            },
+          },
+        }),
+        GEMINI_TIMEOUT_MS,
+      );
+
+      responseText = response.text || '{}';
+    } catch (error: any) {
+      this.logger.error(
+        `Gemini API call failed for onboarding: ${error.message}`,
+        error.stack,
+        'GeminiService',
+      );
+      return {
+        confidence: 'LOW',
+        clarifyingQuestion: "Oya let's set you up! First — wetin be your name?",
+        missingFields: ['ownerName', 'businessName', 'productCategory'],
+      };
+    }
+
+    let parsed: ExtractedOnboarding;
+    try {
+      parsed = JSON.parse(responseText);
+    } catch (error: any) {
+      this.logger.error(
+        `Failed to parse Gemini JSON onboarding response: ${error.message}. Raw response: ${responseText}`,
+        error.stack,
+        'GeminiService',
+      );
+      return {
+        confidence: 'LOW',
+        clarifyingQuestion: "Oya let's set you up! First — wetin be your name?",
+        missingFields: ['ownerName', 'businessName', 'productCategory'],
+      };
+    }
+
+    const validated = this.validateAndNormalizeOnboarding(parsed);
+
+    this.logger.log(
+      `Parsed onboarding result: ${JSON.stringify(validated)}`,
+      'GeminiService',
+    );
+
+    return validated;
+  }
+
+  async classifyProductCategory(text: string): Promise<string> {
+    const lower = text.toLowerCase();
+    if (
+      lower.includes('food') ||
+      lower.includes('rice') ||
+      lower.includes('drink') ||
+      lower.includes('snack') ||
+      lower.includes('provision') ||
+      lower.includes('grocery')
+    )
+      return 'FOOD_AND_GROCERIES';
+    if (
+      lower.includes('cloth') ||
+      lower.includes('shoe') ||
+      lower.includes('bag') ||
+      lower.includes('fashion') ||
+      lower.includes('wear') ||
+      lower.includes('boutique') ||
+      lower.includes('tailor') ||
+      lower.includes('dress') ||
+      lower.includes('shirt')
+    )
+      return 'FASHION_AND_APPAREL';
+    if (
+      lower.includes('phone') ||
+      lower.includes('laptop') ||
+      lower.includes('electronic') ||
+      lower.includes('gadget') ||
+      lower.includes('repair') ||
+      lower.includes('accessory') ||
+      lower.includes('screen') ||
+      lower.includes('charger')
+    )
+      return 'ELECTRONICS_AND_GADGETS';
+    if (
+      lower.includes('makeup') ||
+      lower.includes('perfume') ||
+      lower.includes('beauty') ||
+      lower.includes('hair') ||
+      lower.includes('salon') ||
+      lower.includes('skin') ||
+      lower.includes('cosmetic') ||
+      lower.includes('spray') ||
+      lower.includes('nail')
+    )
+      return 'BEAUTY_AND_PERSONAL_CARE';
+    if (
+      lower.includes('furniture') ||
+      lower.includes('home') ||
+      lower.includes('kitchen') ||
+      lower.includes('bed') ||
+      lower.includes('decor') ||
+      lower.includes('utensil')
+    )
+      return 'HOME_AND_LIVING';
+    if (
+      lower.includes('service') ||
+      lower.includes('laundry') ||
+      lower.includes('photo') ||
+      lower.includes('design') ||
+      lower.includes('deliver') ||
+      lower.includes('logistics') ||
+      lower.includes('consult')
+    )
+      return 'SERVICES';
+
+    if (!this.ai) return 'OTHER';
+
+    try {
+      const response = await this.withTimeout(
+        this.ai.models.generateContent({
+          model: GEMINI_MODEL,
+          contents: `Classify the following product or service description from a Nigerian trader into exactly one of these enum values:
+FOOD_AND_GROCERIES, FASHION_AND_APPAREL, ELECTRONICS_AND_GADGETS, BEAUTY_AND_PERSONAL_CARE, HOME_AND_LIVING, SERVICES, OTHER.
+If ambiguous or unlisted, return OTHER.
+Description: "${text}"`,
+          config: {
+            responseMimeType: 'application/json',
+            responseSchema: {
+              type: Type.OBJECT,
+              properties: {
+                category: {
+                  type: Type.STRING,
+                  enum: [
+                    'FOOD_AND_GROCERIES',
+                    'FASHION_AND_APPAREL',
+                    'ELECTRONICS_AND_GADGETS',
+                    'BEAUTY_AND_PERSONAL_CARE',
+                    'HOME_AND_LIVING',
+                    'SERVICES',
+                    'OTHER',
+                  ],
+                },
+              },
+              required: ['category'],
+            },
+          },
+        }),
+        GEMINI_TIMEOUT_MS,
+      );
+      const parsed = JSON.parse(response.text || '{}');
+      return parsed.category || 'OTHER';
+    } catch {
+      return 'OTHER';
+    }
+  }
+
   /**
    * The schema's `required: ['confidence']` lets Gemini legally return
    * `{ confidence: "HIGH" }` with nothing else — this function refuses
@@ -202,6 +437,68 @@ Only ever set confidence to "HIGH" if you are also returning a non-empty itemDes
       customerName: raw.customerName,
       itemDescription: raw.itemDescription,
       quantity,
+      clarifyingQuestion,
+      missingFields: raw.missingFields?.length
+        ? raw.missingFields
+        : missingFields,
+    };
+  }
+
+  private validateAndNormalizeOnboarding(
+    raw: ExtractedOnboarding,
+  ): ExtractedOnboarding {
+    const validCategories = [
+      'FOOD_AND_GROCERIES',
+      'FASHION_AND_APPAREL',
+      'ELECTRONICS_AND_GADGETS',
+      'BEAUTY_AND_PERSONAL_CARE',
+      'HOME_AND_LIVING',
+      'SERVICES',
+      'OTHER',
+    ];
+
+    const hasOwner =
+      typeof raw.ownerName === 'string' && raw.ownerName.trim().length > 0;
+    const hasBusiness =
+      typeof raw.businessName === 'string' &&
+      raw.businessName.trim().length > 0;
+    const hasCategory =
+      typeof raw.productCategory === 'string' &&
+      validCategories.includes(raw.productCategory.trim());
+
+    if (raw.confidence === 'HIGH' && hasOwner && hasBusiness && hasCategory) {
+      return {
+        confidence: 'HIGH',
+        ownerName: raw.ownerName!.trim(),
+        businessName: raw.businessName!.trim(),
+        productCategory: raw.productCategory!.trim(),
+      };
+    }
+
+    const missingFields: string[] = [];
+    if (!hasOwner) missingFields.push('ownerName');
+    if (!hasBusiness) missingFields.push('businessName');
+    if (!hasCategory) missingFields.push('productCategory');
+
+    let clarifyingQuestion =
+      raw.clarifyingQuestion?.trim() ||
+      "Oya let's set you up! First — wetin be your name?";
+
+    if (!hasOwner) {
+      clarifyingQuestion = "Oya let's set you up! First — wetin be your name?";
+    } else if (!hasBusiness) {
+      const owner = raw.ownerName ? raw.ownerName.trim() : 'trader';
+      clarifyingQuestion = `Nice one, ${owner}! Wetin your business dey called?`;
+    } else if (!hasCategory) {
+      clarifyingQuestion =
+        'Got it. So wetin you dey sell — fashion, food, electronics, beauty products, home stuff, or services?';
+    }
+
+    return {
+      confidence: 'LOW',
+      ownerName: raw.ownerName?.trim() || undefined,
+      businessName: raw.businessName?.trim() || undefined,
+      productCategory: hasCategory ? raw.productCategory!.trim() : undefined,
       clarifyingQuestion,
       missingFields: raw.missingFields?.length
         ? raw.missingFields

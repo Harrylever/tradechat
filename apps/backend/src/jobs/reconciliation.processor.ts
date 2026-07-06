@@ -5,6 +5,7 @@ import * as Sentry from '@sentry/nestjs';
 import { PrismaService } from '../prisma/prisma.service';
 import { NombaService } from '../api/nomba/nomba.service';
 import { NotificationService } from '../twilio/notification.service';
+import { LedgerService } from '../api/ledger/ledger.service';
 
 @Processor('reconciliation')
 export class ReconciliationProcessor extends WorkerHost {
@@ -14,6 +15,7 @@ export class ReconciliationProcessor extends WorkerHost {
     private readonly prisma: PrismaService,
     private readonly nombaService: NombaService,
     private readonly notificationService: NotificationService,
+    private readonly ledgerService: LedgerService,
   ) {
     super();
   }
@@ -52,6 +54,12 @@ export class ReconciliationProcessor extends WorkerHost {
           );
           return;
         }
+
+        await this.ledgerService.creditForPaidTransaction(
+          txId,
+          tx.merchantId,
+          Number(tx.totalAmount),
+        );
 
         this.logger.log(
           `Reconciled missed webhook for tx ${txId} (${ref}) → PAID`,

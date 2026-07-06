@@ -4,17 +4,21 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
+import { LedgerService } from '../ledger/ledger.service';
 
 @Injectable()
 export class WithdrawalService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly ledgerService: LedgerService,
+  ) {}
 
   async getBalance(merchantId: string): Promise<{ availableNaira: number }> {
-    const agg = await this.prisma.transaction.aggregate({
-      where: { merchantId, status: 'PAID' },
-      _sum: { totalAmount: true },
+    const merchant = await this.prisma.merchant.findUnique({
+      where: { id: merchantId },
+      select: { balanceNaira: true },
     });
-    const availableNaira = Number(agg._sum.totalAmount || 0);
+    const availableNaira = Number(merchant?.balanceNaira || 0);
     return { availableNaira };
   }
 
@@ -23,25 +27,20 @@ export class WithdrawalService {
       throw new BadRequestException('Amount must be greater than zero.');
     }
 
-    const { availableNaira } = await this.getBalance(merchantId);
-    if (amountNaira > availableNaira) {
-      throw new BadRequestException(
-        `Insufficient balance. Available: ₦${availableNaira.toLocaleString()}`,
-      );
-    }
-
     const bankAccount = await this.prisma.bankAccount.findUnique({
       where: { merchantId },
     });
+
     if (!bankAccount) {
       throw new BadRequestException(
         'Please save a bank account before requesting a withdrawal.',
       );
     }
 
-    const withdrawal = await this.prisma.withdrawal.create({
-      data: { merchantId, amountNaira },
-    });
+    const withdrawal = await this.ledgerService.debitForWithdrawal(
+      merchantId,
+      amountNaira,
+    );
 
     return {
       ...withdrawal,

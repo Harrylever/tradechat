@@ -11,24 +11,24 @@ import {
   saveBankAccount,
 } from '@/services/withdrawal.service'
 
-export function useWithdrawalBalance(token?: string) {
+export function useWithdrawalBalance() {
   return useQuery({
     queryKey: queryKeys.getWithdrawalBalance(),
-    queryFn: () => getWithdrawalBalance(token),
+    queryFn: () => getWithdrawalBalance(),
   })
 }
 
-export function useWithdrawals(token?: string) {
+export function useWithdrawals() {
   return useQuery({
     queryKey: queryKeys.listWithdrawals(),
-    queryFn: () => listWithdrawals(token),
+    queryFn: () => listWithdrawals(),
   })
 }
 
-export function useBankAccount(token?: string) {
+export function useBankAccount() {
   return useQuery({
     queryKey: queryKeys.getBankAccount(),
-    queryFn: () => getBankAccount(token),
+    queryFn: () => getBankAccount(),
     retry: false,
   })
 }
@@ -37,13 +37,8 @@ export function useRequestWithdrawal() {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: ({
-      amountNaira,
-      token,
-    }: {
-      amountNaira: number
-      token?: string
-    }) => requestWithdrawal(amountNaira, token),
+    mutationFn: ({ amountNaira }: { amountNaira: number }) =>
+      requestWithdrawal(amountNaira),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.withdrawals() })
     },
@@ -56,11 +51,9 @@ export function useSaveBankAccount() {
   return useMutation({
     mutationFn: ({
       data,
-      token,
     }: {
       data: { bankCode: string; accountNumber: string; accountName: string }
-      token?: string
-    }) => saveBankAccount(data, token),
+    }) => saveBankAccount(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.getBankAccount() })
     },

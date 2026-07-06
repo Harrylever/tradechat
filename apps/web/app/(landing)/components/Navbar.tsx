@@ -63,7 +63,7 @@ export function Navbar() {
       >
         <DefaultWidth>
           <nav className="flex items-center justify-between pt-8 pb-6">
-            <div className="flex items-center gap-2 select-none">
+            <Link href="/" className="flex items-center gap-2 select-none">
               <div className="flex h-8 w-8 items-center justify-center rounded-3xl! bg-linear-to-br from-[#4EDEA3] to-[#00BD85] shadow-md shadow-emerald-500/30">
                 <span className="text-foreground font-heading text-sm font-bold">
                   T
@@ -72,7 +72,7 @@ export function Navbar() {
               <span className="text-primary text-lg font-bold tracking-tight">
                 Tradechat
               </span>
-            </div>
+            </Link>
 
             <div className="hidden items-center justify-center gap-4 md:flex">
               {NAV_LINKS.map((item) => (
@@ -93,8 +93,8 @@ export function Navbar() {
                 Login
               </Link>
               <Link
-                href="/#"
-                className="border-primary/20 bg-primary text-foreground hover:bg-primary/90 flex items-center justify-center gap-2 border px-4 py-2 text-sm font-semibold transition-all"
+                href="/get-started"
+                className="border-primary/20 bg-primary text-secondary hover:bg-primary/90 flex items-center justify-center gap-2 border px-4 py-2 text-sm font-semibold transition-all"
               >
                 Get Started
                 <HugeiconsIcon icon={ChevronRightIcon} size={20} />

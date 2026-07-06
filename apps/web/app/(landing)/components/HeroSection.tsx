@@ -14,7 +14,7 @@ export function HeroSection() {
         <div className="z-10 flex flex-col items-start gap-3 text-left">
           <Badge
             variant="secondary"
-            className="text-secondary rounded-full border border-[#3C4A42] bg-[#242C27] px-4 py-3.5 text-xs font-medium"
+            className="rounded-full border border-[#3C4A42] bg-[#242C27] px-4 py-3.5 text-xs font-medium text-gray-300"
           >
             <span className="h-2 w-2 animate-pulse rounded-full bg-[#4EDEA3]" />
             Powered by Nomba · Built for African Merchants
@@ -35,10 +35,10 @@ export function HeroSection() {
 
           <div className="flex w-full flex-col gap-4 sm:w-auto sm:flex-row">
             <Link
-              href="/login"
-              className="flex items-center justify-center gap-2 bg-[#00BD85] px-8 py-4 text-center text-base font-medium text-[#0a0f1e] shadow-lg shadow-emerald-500/25 transition-all duration-200 hover:scale-105 hover:bg-[#4EDEA3]"
+              href="/get-started"
+              className="text-darkbg flex items-center justify-center gap-2 bg-[#00BD85] px-8 py-4 text-center text-base font-medium shadow-lg shadow-emerald-500/25 transition-all duration-200 hover:scale-105 hover:bg-[#4EDEA3]"
             >
-              Open Dashboard
+              Get Started
               <HugeiconsIcon icon={ChevronRightIcon} size={20} />
             </Link>
             <a
