@@ -12,24 +12,55 @@ datasource db {
   provider = "postgresql"
 }
 
-model Merchant {
-  id                 String         @id @default(cuid())
-  businessName       String
-  whatsappNumber     String         @unique
-  nombaMerchantId    String?
-  tier               Tier           @default(FREE)
-  onboardingComplete Boolean        @default(false)
-  createdAt          DateTime       @default(now())
-  updatedAt          DateTime       @updatedAt
-  products           Product[]
-  transactions       Transaction[]
-  webhookEvents      WebhookEvent[]
+enum TransactionStatus {
+  PENDING_CONFIRMATION
+  AWAITING_PAYMENT
+  PAID
+  FAILED
+  CANCELLED
 }
 
 enum Tier {
   FREE
   GROWTH
   PRO
+}
+
+enum WebhookSource {
+  NOMBA
+  TWILIO
+}
+
+enum WithdrawalStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+}
+
+enum LedgerEntryType {
+  CREDIT
+  DEBIT
+}
+
+model Merchant {
+  id                 String         @id @default(cuid())
+  businessName       String
+  ownerName          String?
+  productCategory    String?
+  whatsappNumber     String         @unique
+  nombaMerchantId    String?
+  tier               Tier           @default(FREE)
+  onboardingComplete Boolean        @default(false)
+  balanceNaira       Decimal        @default(0) @db.Decimal(12, 2)
+  createdAt          DateTime       @default(now())
+  updatedAt          DateTime       @updatedAt
+  products           Product[]
+  transactions       Transaction[]
+  webhookEvents      WebhookEvent[]
+  bankAccount        BankAccount?
+  withdrawals        Withdrawal[]
+  ledgerEntries      LedgerEntry[]
 }
 
 model Product {
@@ -51,7 +82,7 @@ model Transaction {
   unitPrice            Decimal           @db.Decimal(12, 2)
   totalAmount          Decimal           @db.Decimal(12, 2)
   status               TransactionStatus @default(PENDING_CONFIRMATION)
-  merchantTxRef        String?
+  merchantTxRef        String?           @unique
   checkoutLink         String?
   virtualAccountNumber String?
   createdAt            DateTime          @default(now())
@@ -59,14 +90,9 @@ model Transaction {
   updatedAt            DateTime          @updatedAt
   merchant             Merchant          @relation(fields: [merchantId], references: [id], onDelete: Cascade)
   webhookEvents        WebhookEvent[]
-}
+  ledgerEntry          LedgerEntry?
 
-enum TransactionStatus {
-  PENDING_CONFIRMATION
-  AWAITING_PAYMENT
-  PAID
-  FAILED
-  CANCELLED
+  @@index([status, createdAt])
 }
 
 model WebhookEvent {
@@ -76,12 +102,50 @@ model WebhookEvent {
   idempotencyKey String        @unique
   processedAt    DateTime      @default(now())
   transactionId  String?
-  merchantId     String?
   transaction    Transaction?  @relation(fields: [transactionId], references: [id])
+  merchantId     String?
   merchant       Merchant?     @relation(fields: [merchantId], references: [id])
 }
 
-enum WebhookSource {
-  NOMBA
-  TWILIO
+model BankAccount {
+  id            String   @id @default(cuid())
+  merchantId    String   @unique
+  bankCode      String
+  accountNumber String
+  accountName   String
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  merchant      Merchant @relation(fields: [merchantId], references: [id], onDelete: Cascade)
+}
+
+model Withdrawal {
+  id          String           @id @default(cuid())
+  merchantId  String
+  amountNaira Decimal          @db.Decimal(12, 2)
+  status      WithdrawalStatus @default(PENDING)
+  note        String?
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+  merchant    Merchant         @relation(fields: [merchantId], references: [id], onDelete: Cascade)
+  ledgerEntry LedgerEntry?
+
+  @@index([merchantId, createdAt])
+}
+
+model LedgerEntry {
+  id                 String          @id @default(cuid())
+  merchantId         String
+  type               LedgerEntryType
+  amountNaira        Decimal         @db.Decimal(12, 2)
+  balanceBeforeNaira Decimal         @db.Decimal(12, 2)
+  balanceAfterNaira  Decimal         @db.Decimal(12, 2)
+  transactionId      String?         @unique
+  withdrawalId       String?         @unique
+  createdAt          DateTime        @default(now())
+
+  merchant    Merchant     @relation(fields: [merchantId], references: [id], onDelete: Cascade)
+  transaction Transaction? @relation(fields: [transactionId], references: [id])
+  withdrawal  Withdrawal?  @relation(fields: [withdrawalId], references: [id])
+
+  @@index([merchantId, createdAt])
 }
