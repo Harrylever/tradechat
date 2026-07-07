@@ -17,7 +17,12 @@ import { toast } from 'sonner'
 
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { Card } from '@/components/ui/card'
+import {
+  Card,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card'
 import {
   Dialog,
   DialogContent,
@@ -108,20 +113,20 @@ export function ProfileClient({ initialProfile, stats }: Props) {
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         {/* Account Overview Card */}
-        <Card className="space-y-6 border border-white/8 bg-white/4 p-6">
-          <div className="flex items-center gap-3 border-b border-white/8 pb-4">
+        <Card className="space-y-6 border border-white/8 p-6">
+          <CardHeader className="flex items-center gap-3 border-b border-white/8 px-0 pb-4">
             <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-500/10 text-emerald-400">
               <HugeiconsIcon icon={Building01Icon} size={22} />
             </div>
             <div>
-              <h2 className="text-lg font-semibold text-white">
+              <CardTitle className="text-lg font-semibold text-white">
                 Account Overview
-              </h2>
-              <p className="text-xs text-slate-400">
+              </CardTitle>
+              <CardDescription className="text-xs text-slate-400">
                 Core identity & payment configuration
-              </p>
+              </CardDescription>
             </div>
-          </div>
+          </CardHeader>
 
           <div className="space-y-4 text-sm">
             <div className="flex items-center justify-between border-b border-white/5 py-2">
@@ -186,20 +191,20 @@ export function ProfileClient({ initialProfile, stats }: Props) {
         </Card>
 
         {/* Statistics Card */}
-        <Card className="space-y-6 border border-white/8 bg-white/4 p-6">
-          <div className="flex items-center gap-3 border-b border-white/8 pb-4">
+        <Card className="space-y-6 border border-white/8 p-6">
+          <CardHeader className="flex items-center gap-3 border-b border-white/8 px-0 pb-4">
             <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-violet-500/10 text-violet-400">
               <HugeiconsIcon icon={UserCircleIcon} size={22} />
             </div>
             <div>
-              <h2 className="text-lg font-semibold text-white">
+              <CardTitle className="text-lg font-semibold text-white">
                 Business Statistics
-              </h2>
-              <p className="text-xs text-slate-400">
+              </CardTitle>
+              <CardDescription className="text-xs text-slate-400">
                 Lifetime transaction volume & success metrics
-              </p>
+              </CardDescription>
             </div>
-          </div>
+          </CardHeader>
 
           <div className="grid grid-cols-1 gap-4 pt-2 sm:grid-cols-2">
             <div className="rounded-2xl border border-white/6 bg-white/3 p-4">

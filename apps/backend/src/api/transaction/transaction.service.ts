@@ -28,17 +28,13 @@ export class TransactionService {
     });
   }
 
-  async getTransaction(id: string, merchantId: string) {
+  async getTransaction(id: string) {
     const transaction = await this.prisma.transaction.findUnique({
       where: { id },
       include: { webhookEvents: true, merchant: true },
     });
     if (!transaction) {
       throw new NotFoundException('Transaction not found');
-    }
-
-    if (transaction.merchantId !== merchantId) {
-      throw new ForbiddenException('Not authorized to view this transaction');
     }
 
     return transaction;

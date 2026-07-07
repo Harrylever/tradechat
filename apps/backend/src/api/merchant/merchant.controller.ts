@@ -9,6 +9,7 @@ import {
 import { UpdateMerchantDto } from './dto/merchant.dto';
 
 @ApiTags('Merchants')
+@UseGuards(JwtAuthGuard)
 @Controller('merchants')
 export class MerchantController {
   constructor(private readonly merchantService: MerchantService) {}
@@ -16,25 +17,23 @@ export class MerchantController {
   @Get('me')
   @ApiOperation({ summary: 'Get merchant profile by ID' })
   async getProfile(@CurrentUser() user: JwtUser) {
-    return this.merchantService.getMerchantProfile(user.sub);
+    return await this.merchantService.getMerchantProfile(user.sub);
   }
 
   @Get('me/stats')
-  @UseGuards(JwtAuthGuard)
   @ApiOperation({
     summary: 'Get merchant sales statistics and transaction volume',
   })
   async getStats(@CurrentUser() user: JwtUser) {
-    return this.merchantService.getMerchantStats(user.sub);
+    return await this.merchantService.getMerchantStats(user.sub);
   }
 
   @Patch('me')
-  @UseGuards(JwtAuthGuard)
   @ApiOperation({ summary: 'Update merchant profile details' })
   async updateProfile(
     @CurrentUser() user: JwtUser,
     @Body() body: UpdateMerchantDto,
   ) {
-    return this.merchantService.updateMerchant(user.sub, body);
+    return await this.merchantService.updateMerchant(user.sub, body);
   }
 }

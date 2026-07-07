@@ -33,7 +33,7 @@ export class TransactionController {
     summary:
       'Get single transaction details along with associated webhook events',
   })
-  async getDetails(@CurrentUser() user: JwtUser, @Param('id') id: string) {
-    return this.transactionService.getTransaction(id, user.sub);
+  async getDetails(@Param('id') id: string) {
+    return this.transactionService.getTransaction(id);
   }
 }

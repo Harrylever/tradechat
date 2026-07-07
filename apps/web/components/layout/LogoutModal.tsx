@@ -38,8 +38,7 @@ export function LogoutModal({
           </DialogTitle>
           <DialogDescription className="text-sm text-slate-400">
             Are you sure you want to log out of your merchant portal? You will
-            need to sign in again with your WhatsApp number and OTP to access
-            your transactions and balance.
+            need to sign in again with your WhatsApp number and OTP.
           </DialogDescription>
         </DialogHeader>
 

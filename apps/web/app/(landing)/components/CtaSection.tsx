@@ -14,10 +14,10 @@ export function CtaSection() {
           WhatsApp.
         </p>
         <Link
-          href="/login"
+          href="/get-started"
           className="inline-flex items-center gap-2 bg-[#00BD85] px-8 py-3.5 text-sm font-medium text-[#0a0f1e] shadow-lg shadow-emerald-500/25 transition-all duration-200 hover:scale-105 hover:bg-[#4EDEA3]"
         >
-          Merchant login
+          Use Tradechat
           <HugeiconsIcon icon={ChevronRight} size={20} />
         </Link>
       </div>
