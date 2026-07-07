@@ -1,0 +1,9 @@
+[build]
+builder = "nixpacks"
+buildCommand = "pnpm db:generate && pnpm build"
+
+[deploy]
+preDeployCommand = "pnpm db:migrate:deploy"
+startCommand = "node dist/src/main"
+restartPolicyType = "on_failure"
+restartPolicyMaxRetries = 3

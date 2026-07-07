@@ -34,6 +34,7 @@ Twilio WhatsApp Business API ──(webhook)──► NestJS Backend
 ```
 
 **Core loop:**
+
 1. Merchant sends a free-text sale message on WhatsApp
 2. Twilio forwards it to a NestJS webhook endpoint
 3. Gemini extracts structured data (item, qty, price, customer)
@@ -48,18 +49,19 @@ Twilio WhatsApp Business API ──(webhook)──► NestJS Backend
 
 ## Tech Stack
 
-| Layer | Choice |
-|---|---|
-| Messaging | Twilio WhatsApp Business API |
-| AI parsing | Google Gemini 1.5 Flash |
-| Payments | Nomba Checkout API + Virtual Accounts + Webhooks |
-| Backend | NestJS (Node.js / TypeScript) |
-| ORM / DB | Prisma + PostgreSQL (Railway) |
-| Cache / Queue | Upstash Redis + BullMQ |
-| Dashboard | Next.js + Tailwind |
-| Auth | Clerk |
-| Hosting (backend) | Railway |
-| Hosting (dashboard) | Vercel |
+| Layer               | Choice                                           |
+| ------------------- | ------------------------------------------------ |
+| Messaging           | Twilio WhatsApp Business API                     |
+| AI parsing          | Google Gemini 2.5 Flash (`@google/genai`)        |
+| Payments            | Nomba Checkout API + Virtual Accounts + Webhooks |
+| Backend             | NestJS (Node.js 24 / TypeScript)                 |
+| ORM / DB            | Prisma + PostgreSQL                              |
+| Cache / Queue       | Upstash Redis + BullMQ                           |
+| Dashboard           | Next.js 16 + Tailwind CSS v4 + Shadcn UI         |
+| Auth                | Custom WhatsApp OTP + Magic Links (JWT/Cookies)  |
+| Monitoring          | Sentry (APM & Profiling) + Logtail / Winston     |
+| Hosting (backend)   | Railway                                          |
+| Hosting (dashboard) | Vercel                                           |
 
 ---
 
@@ -101,27 +103,47 @@ pnpm install
 
 ### Environment setup
 
-Copy the example env file in the backend and fill in your credentials:
+Copy the example environment files for both the backend API and the web dashboard:
 
 ```sh
+# Backend setup
 cp apps/backend/.env.example apps/backend/.env
+
+# Web dashboard setup
+cp apps/web/.env.example apps/web/.env.local
 ```
 
-| Variable | Description |
-|---|---|
-| `DATABASE_URL` | PostgreSQL connection string |
-| `TWILIO_ACCOUNT_SID` | Twilio account SID |
-| `TWILIO_AUTH_TOKEN` | Twilio auth token |
-| `TWILIO_WHATSAPP_FROM` | Sandbox number e.g. `whatsapp:+14155238886` |
-| `GEMINI_API_KEY` | Google AI Studio key |
-| `NOMBA_BASE_URL` | `https://sandbox.api.nomba.com/v1` (sandbox) |
-| `NOMBA_ACCOUNT_ID` | Nomba parent account UUID |
-| `NOMBA_CLIENT_ID` | Nomba OAuth client ID |
-| `NOMBA_CLIENT_SECRET` | Nomba OAuth client secret |
-| `NOMBA_WEBHOOK_SECRET` | Nomba webhook signature key |
-| `REDIS_URL` | Upstash Redis URL |
-| `API_SECRET` | Internal secret for dashboard ↔ backend calls |
-| `PORT` | Server port (default `3001`) |
+#### Backend Environment (`apps/backend/.env`)
+
+| Variable                 | Description                                       |
+| ------------------------ | ------------------------------------------------- |
+| `DATABASE_URL`           | PostgreSQL connection string                      |
+| `TWILIO_ACCOUNT_SID`     | Twilio account SID                                |
+| `TWILIO_AUTH_TOKEN`      | Twilio auth token                                 |
+| `TWILIO_WHATSAPP_NUMBER` | Twilio sender number e.g. `whatsapp:+14155238886` |
+| `GEMINI_API_KEY`         | Google AI Studio API key                          |
+| `NOMBA_ACCOUNT_ID`       | Nomba parent account UUID                         |
+| `NOMBA_SUBACCOUNT_ID`    | Nomba sub-account UUID                            |
+| `NOMBA_CLIENT_ID`        | Nomba OAuth client ID                             |
+| `NOMBA_CLIENT_SECRET`    | Nomba OAuth client secret                         |
+| `NOMBA_WEBHOOK_SECRET`   | Nomba webhook signature key                       |
+| `NOMBA_DEFAULT_EMAIL`    | Default customer email (e.g. `orders@...`)        |
+| `REDIS_URL`              | Upstash Redis connection string                   |
+| `SENTRY_DSN`             | Sentry error monitoring DSN                       |
+| `LOGTAIL_SOURCE_TOKEN`   | Better Stack / Logtail source token               |
+| `LOGTAIL_INGESTING_HOST` | Logtail ingesting host                            |
+| `JWT_SECRET`             | Internal secret for dashboard ↔ backend auth      |
+| `JWT_EXPIRES_IN`         | JWT expiration duration (e.g. `7d`)               |
+| `WEB_APP_URL`            | Web dashboard URL (e.g. `http://localhost:3000`)  |
+| `ALLOWED_ORIGINS`        | CORS allowed origins comma-separated list         |
+| `PORT`                   | Server port (default `3001` or `3002`)            |
+
+#### Web Dashboard Environment (`apps/web/.env.local`)
+
+| Variable                          | Description                                                                 |
+| --------------------------------- | --------------------------------------------------------------------------- |
+| `NEXT_PUBLIC_API_URL`             | Base URL of the backend API (default `http://localhost:3001`)               |
+| `NEXT_PUBLIC_WHATSAPP_BOT_NUMBER` | WhatsApp bot contact number without `+` or `whatsapp:` (e.g. `14155238886`) |
 
 ### Database
 
@@ -167,14 +189,36 @@ turbo build --filter=backend
 
 ## API
 
-The backend exposes:
+The backend exposes a REST API with a global `api/v1` prefix and Swagger documentation:
 
-- `GET /health` — health check (no auth required)
-- `POST /webhook/twilio` — inbound WhatsApp messages from Twilio
-- `POST /webhook/nomba` — payment events from Nomba (HMAC verified)
-- `GET /api/v1/docs` — Swagger UI
-- `GET /api/v1/merchants/:id/transactions` — dashboard REST API
-- `GET /api/v1/merchants/:id/transactions/stats` — revenue stats
+- **Documentation & Health**
+  - `GET /api/v1/docs` — Interactive Swagger UI
+  - `GET /api/v1/health` — Service health check
+
+- **Webhooks (No Auth / Signature Verified)**
+  - `POST /api/v1/webhook/twilio` — Inbound WhatsApp messages & status updates from Twilio
+  - `POST /api/v1/webhook/nomba` — Payment event webhooks from Nomba (HMAC signature verified)
+
+- **Authentication (`/api/v1/auth`)**
+  - `POST /api/v1/auth/otp/request` — Request a WhatsApp one-time password (OTP)
+  - `POST /api/v1/auth/otp/verify` — Verify OTP and receive JWT session cookie / token
+  - `POST /api/v1/auth/magic/consume` — Consume a single-use magic link token
+
+- **Merchants (`/api/v1/merchants`)**
+  - `GET /api/v1/merchants/me` — Get authenticated merchant profile
+  - `GET /api/v1/merchants/me/stats` — Get sales volume, success rates, and transaction counts
+  - `PATCH /api/v1/merchants/me` — Update merchant profile and Nomba settings
+
+- **Transactions (`/api/v1/transactions`)**
+  - `GET /api/v1/transactions/me` — List transactions filtered by status or limit
+  - `GET /api/v1/transactions/:id` — Get single transaction details and webhook audit trail
+
+- **Withdrawals & Bank Accounts (`/api/v1/withdrawals`)**
+  - `GET /api/v1/withdrawals/me/balance` — Get available balance in Naira
+  - `POST /api/v1/withdrawals` — Submit a payout / withdrawal request
+  - `GET /api/v1/withdrawals/me` — List withdrawal request history
+  - `GET /api/v1/withdrawals/me/bank-account` — Get saved settlement bank account
+  - `PUT /api/v1/withdrawals/me/bank-account` — Save or update settlement bank account details
 
 ---
 
@@ -185,6 +229,7 @@ The backend exposes:
 **Track:** Infrastructure
 
 ### Success criteria
+
 - [ ] Merchant onboards entirely via WhatsApp in under 5 minutes
 - [ ] A sale message produces a live Nomba checkout link within 60 seconds
 - [ ] Nomba webhook triggers merchant confirmation within 10 seconds of payment
@@ -195,6 +240,6 @@ The backend exposes:
 
 ## Author
 
-| Name | Role |
-|---|---|
+| Name | Role                        |
+| ---- | --------------------------- |
 | Dean | Full-stack / AI integration |
