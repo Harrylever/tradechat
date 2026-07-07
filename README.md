@@ -226,7 +226,7 @@ The backend exposes a REST API with a global `api/v1` prefix and Swagger documen
 
 **Build window:** July 1–7, 2026
 **Submission deadline:** July 18, 2026
-**Track:** Infrastructure
+**Track:** Build Track - Virtual accounts as Infrastructure, Integrations & Plugins
 
 ### Success criteria
 
