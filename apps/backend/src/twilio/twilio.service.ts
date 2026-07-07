@@ -11,14 +11,14 @@ export class TwilioService {
   constructor(private readonly configService: ConfigService) {
     const accountSid = this.configService.get<string>('TWILIO_ACCOUNT_SID');
     const authToken = this.configService.get<string>('TWILIO_AUTH_TOKEN');
-    const from =
-      this.configService.get<string>('TWILIO_WHATSAPP_NUMBER') ||
-      this.configService.get<string>('TWILIO_WHATSAPP_FROM');
+    const from = this.configService.get<string>('TWILIO_WHATSAPP_NUMBER');
 
     if (from) {
       this.fromNumber = from.startsWith('whatsapp:')
         ? from
         : `whatsapp:${from}`;
+    } else {
+      throw new Error('TWILIO_WHATSAPP_NUMBER missing!');
     }
 
     if (accountSid && authToken) {

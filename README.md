@@ -115,37 +115,35 @@ cp apps/web/.env.example apps/web/.env.local
 
 #### Backend Environment (`apps/backend/.env`)
 
-| Variable                 | Description                                      |
-| ------------------------ | ------------------------------------------------ |
-| `DATABASE_URL`           | PostgreSQL connection string                     |
-| `TWILIO_ACCOUNT_SID`     | Twilio account SID                               |
-| `TWILIO_AUTH_TOKEN`      | Twilio auth token                                |
-| `TWILIO_WHATSAPP_FROM`   | Twilio sender number e.g. `whatsapp:+14155238886`|
-| `TWILIO_WHATSAPP_NUMBER` | WhatsApp bot contact number                      |
-| `GEMINI_API_KEY`         | Google AI Studio API key                         |
-| `NOMBA_BASE_URL`         | `https://sandbox.api.nomba.com/v1` (sandbox)     |
-| `NOMBA_ACCOUNT_ID`       | Nomba parent account UUID                        |
-| `NOMBA_SUBACCOUNT_ID`    | Nomba sub-account UUID                           |
-| `NOMBA_CLIENT_ID`        | Nomba OAuth client ID                            |
-| `NOMBA_CLIENT_SECRET`    | Nomba OAuth client secret                        |
-| `NOMBA_WEBHOOK_SECRET`   | Nomba webhook signature key                      |
-| `NOMBA_DEFAULT_EMAIL`    | Default customer email (e.g. `orders@...`)       |
-| `REDIS_URL`              | Upstash Redis connection string                  |
-| `SENTRY_DSN`             | Sentry error monitoring DSN                      |
-| `LOGTAIL_SOURCE_TOKEN`   | Better Stack / Logtail source token              |
-| `LOGTAIL_INGESTING_HOST` | Logtail ingesting host                           |
-| `JWT_SECRET`             | Internal secret for dashboard ↔ backend auth     |
-| `JWT_EXPIRES_IN`         | JWT expiration duration (e.g. `7d`)              |
-| `WEB_APP_URL`            | Web dashboard URL (e.g. `http://localhost:3000`) |
-| `ALLOWED_ORIGINS`        | CORS allowed origins comma-separated list        |
-| `PORT`                   | Server port (default `3001` or `3002`)           |
+| Variable                 | Description                                       |
+| ------------------------ | ------------------------------------------------- |
+| `DATABASE_URL`           | PostgreSQL connection string                      |
+| `TWILIO_ACCOUNT_SID`     | Twilio account SID                                |
+| `TWILIO_AUTH_TOKEN`      | Twilio auth token                                 |
+| `TWILIO_WHATSAPP_NUMBER` | Twilio sender number e.g. `whatsapp:+14155238886` |
+| `GEMINI_API_KEY`         | Google AI Studio API key                          |
+| `NOMBA_ACCOUNT_ID`       | Nomba parent account UUID                         |
+| `NOMBA_SUBACCOUNT_ID`    | Nomba sub-account UUID                            |
+| `NOMBA_CLIENT_ID`        | Nomba OAuth client ID                             |
+| `NOMBA_CLIENT_SECRET`    | Nomba OAuth client secret                         |
+| `NOMBA_WEBHOOK_SECRET`   | Nomba webhook signature key                       |
+| `NOMBA_DEFAULT_EMAIL`    | Default customer email (e.g. `orders@...`)        |
+| `REDIS_URL`              | Upstash Redis connection string                   |
+| `SENTRY_DSN`             | Sentry error monitoring DSN                       |
+| `LOGTAIL_SOURCE_TOKEN`   | Better Stack / Logtail source token               |
+| `LOGTAIL_INGESTING_HOST` | Logtail ingesting host                            |
+| `JWT_SECRET`             | Internal secret for dashboard ↔ backend auth      |
+| `JWT_EXPIRES_IN`         | JWT expiration duration (e.g. `7d`)               |
+| `WEB_APP_URL`            | Web dashboard URL (e.g. `http://localhost:3000`)  |
+| `ALLOWED_ORIGINS`        | CORS allowed origins comma-separated list         |
+| `PORT`                   | Server port (default `3001` or `3002`)            |
 
 #### Web Dashboard Environment (`apps/web/.env.local`)
 
-| Variable                          | Description                                                                     |
-| --------------------------------- | ------------------------------------------------------------------------------- |
-| `NEXT_PUBLIC_API_URL`             | Base URL of the backend API (default `http://localhost:3001`)                   |
-| `NEXT_PUBLIC_WHATSAPP_BOT_NUMBER` | WhatsApp bot contact number without `+` or `whatsapp:` (e.g. `14155238886`)     |
+| Variable                          | Description                                                                 |
+| --------------------------------- | --------------------------------------------------------------------------- |
+| `NEXT_PUBLIC_API_URL`             | Base URL of the backend API (default `http://localhost:3001`)               |
+| `NEXT_PUBLIC_WHATSAPP_BOT_NUMBER` | WhatsApp bot contact number without `+` or `whatsapp:` (e.g. `14155238886`) |
 
 ### Database
 
