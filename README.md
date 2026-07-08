@@ -4,6 +4,10 @@
 >
 > DevCareer × Nomba Hackathon 2026
 
+[![Watch Live Demo Video](https://img.shields.io/badge/🎥%20Watch%20Live%20Demo%20Video-Loom-625df5?style=for-the-badge&logo=loom&logoColor=white)](https://www.loom.com/share/b6165fd758a945fabf51055635ee037c)
+
+> **[📺 Click here to watch the Tradechat Live Demo Video](https://www.loom.com/share/b6165fd758a945fabf51055635ee037c)**
+
 ---
 
 ## What is TradeChat?
