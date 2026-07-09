@@ -41,7 +41,8 @@ export async function request<T>(
           pathname === '/' ||
           pathname.startsWith('/login') ||
           pathname.startsWith('/get-started') ||
-          pathname.startsWith('/auth')
+          pathname.startsWith('/auth') ||
+          pathname.startsWith('/payment')
       } catch {
         // In case headers() fails in some context
       }

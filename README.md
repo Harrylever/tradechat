@@ -18,6 +18,8 @@ TradeChat turns a merchant's existing WhatsApp number into a full point-of-sale 
 
 ## Architecture
 
+> 📖 **Full Architecture & Security Note:** For a deep-dive technical breakdown of our WhatsApp/Magic Link authentication, HMAC-SHA256 webhook signature verification (`NombaSignatureGuard`), idempotency guarantees (`WebhookAuditService`), and our ACID double-entry financial ledger (`LedgerService`), see our **[Architecture and Security Documentation](./ARCHITECTURE_AND_SECURITY.md)**.
+
 ```
 Customer/Merchant (WhatsApp)
         │
@@ -239,6 +241,12 @@ The backend exposes a REST API with a global `api/v1` prefix and Swagger documen
 - [ ] Nomba webhook triggers merchant confirmation within 10 seconds of payment
 - [ ] Dashboard reflects real-time transaction data
 - [ ] Daily WhatsApp summary sends on schedule
+
+### Submission Artifacts
+
+- 📄 **[Architecture and Security Note](./ARCHITECTURE_AND_SECURITY.md)** — Exhaustive technical breakdown of authentication, HMAC webhook signature verification, data isolation, and our ACID double-entry ledger model.
+- 🎥 **[Live Demo Video](https://www.loom.com/share/b6165fd758a945fabf51055635ee037c)** — 2-3 minute walkthrough of the WhatsApp bot and merchant dashboard.
+- 🎨 **[Design System & Guidelines](./DESIGN.md)** — Visual design tokens, typography, and UI guidelines.
 
 ---
 
