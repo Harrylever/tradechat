@@ -3,7 +3,7 @@ import type { NextRequest } from 'next/server'
 
 import { ACCESS_TOKEN_COOKIE_NAME } from '@/lib/auth'
 
-const publicPathPrefixes = ['/login', '/get-started', '/auth']
+const publicPathPrefixes = ['/login', '/get-started', '/auth', '/payment']
 const exactPublicPaths = ['/']
 
 function isPublic(pathname: string): boolean {
